@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Unit_Test", "Unit_Test\Unit_Test.vcxproj", "{78415FD2-41C0-4D2D-A7AF-F962BBD91972}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MBase", "MBase\MBase.vcxproj", "{5BC548DD-519D-467A-A170-3964690C9C7B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pthread", "opensrc\pthreads-w32-2-9-1-release\pthread.vcxproj", "{35F88C6D-9E27-454F-BB35-3D4BDF3AD88D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "normalize_engine", "normalize_engine\normalize_engine.vcxproj", "{7559CD1F-CD55-4CAC-B176-12122EED3804}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78415FD2-41C0-4D2D-A7AF-F962BBD91972}.Debug|Win32.ActiveCfg = Debug|Win32
+		{78415FD2-41C0-4D2D-A7AF-F962BBD91972}.Debug|Win32.Build.0 = Debug|Win32
+		{78415FD2-41C0-4D2D-A7AF-F962BBD91972}.Release|Win32.ActiveCfg = Release|Win32
+		{78415FD2-41C0-4D2D-A7AF-F962BBD91972}.Release|Win32.Build.0 = Release|Win32
+		{5BC548DD-519D-467A-A170-3964690C9C7B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5BC548DD-519D-467A-A170-3964690C9C7B}.Debug|Win32.Build.0 = Debug|Win32
+		{5BC548DD-519D-467A-A170-3964690C9C7B}.Release|Win32.ActiveCfg = Release|Win32
+		{5BC548DD-519D-467A-A170-3964690C9C7B}.Release|Win32.Build.0 = Release|Win32
+		{35F88C6D-9E27-454F-BB35-3D4BDF3AD88D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{35F88C6D-9E27-454F-BB35-3D4BDF3AD88D}.Debug|Win32.Build.0 = Debug|Win32
+		{35F88C6D-9E27-454F-BB35-3D4BDF3AD88D}.Release|Win32.ActiveCfg = Release|Win32
+		{35F88C6D-9E27-454F-BB35-3D4BDF3AD88D}.Release|Win32.Build.0 = Release|Win32
+		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Debug|Win32.Build.0 = Debug|Win32
+		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Release|Win32.ActiveCfg = Release|Win32
+		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,133 @@
+/* 
+	M_asm.h : 统一各种CPU的汇编为一种格式: ATOM_OP_INTPTR
+
+	kevin.zheng@gmail.com
+	2012/09/16
+*/
+
+#ifndef __M_ASM_H__
+#define __M_ASM_H__
+
+#include "M_types.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef __M_CFG_CPU_X86
+
+#include "M_asm_x86.h"
+
+#if	(defined __M_CFG_CMPL_MVC)
+
+#ifdef __M_CFG_OS64
+
+#define	ATOM_ADD64	ATOM_ADD64_X86_MVC
+#define ATOM_SUB64	ATOM_SUB64_X86_MVC
+#define ATOM_INC64	ATOM_INC64_X86_MVC
+#define ATOM_DEC64	ATOM_DEC64_X86_MVC
+
+#define	ATOM_ADDTEST64(x, v)	ATOM_ADDTEST64_X86_MVC((M_sint64*)x, (M_sint64)v)
+#define ATOM_SUBTEST64(x, v)	ATOM_SUBTEST64_X86_MVC((M_sint64*)x, (M_sint64)v)
+#define ATOM_INCTEST64(x)		ATOM_INCTEST64_X86_MVC((M_sint64*)x)
+#define ATOM_DECTEST64(x)		ATOM_DECTEST64_X86_MVC((M_sint64*)x)
+
+#define ATOM_XCHG64(x, v)		ATOM_XCHG64_X86_MVC(x, v)
+#define ATOM_CMPXCHG64(x, oldv, newv)	ATOM_CMPXCHG64_X86_MVC((M_sint64*)x, (M_sint64)oldv, (M_sint64)newv)
+
+#else //__M_CFG_OS64
+
+#define	ATOM_ADD32	ATOM_ADD32_X86_MVC
+#define ATOM_SUB32	ATOM_SUB32_X86_MVC
+#define ATOM_INC32	ATOM_INC32_X86_MVC
+#define ATOM_DEC32	ATOM_DEC32_X86_MVC
+
+#define	ATOM_ADDTEST32(x, v)	ATOM_ADDTEST32_X86_MVC((M_sint32*)x, (M_sint32)v)
+#define ATOM_SUBTEST32(x, v)	ATOM_SUBTEST32_X86_MVC((M_sint32*)x, (M_sint32)v)
+#define ATOM_INCTEST32(x)		ATOM_INCTEST32_X86_MVC((M_sint32*)x)
+#define ATOM_DECTEST32(x)		ATOM_DECTEST32_X86_MVC((M_sint32*)x)
+
+#define ATOM_XCHG32(x, v)		ATOM_XCHG32_X86_MVC(x, v)
+#define ATOM_CMPXCHG32(x, oldv, newv)	ATOM_CMPXCHG32_X86_MVC((M_sint32*)x, (M_sint32)oldv, (M_sint32)newv)
+
+#endif //__M_CFG_OS64
+
+#elif (defined __M_CFG_CMPL_GCC)
+
+#ifdef __M_CFG_OS64
+
+#define	ATOM_ADD64	ATOM_ADD64_X86_GCC
+#define ATOM_SUB64	ATOM_SUB64_X86_GCC
+#define ATOM_INC64	ATOM_INC64_X86_GCC
+#define ATOM_DEC64	ATOM_DEC64_X86_GCC
+
+#define	ATOM_ADDTEST64(x, v)	ATOM_ADDTEST64_X86_GCC((M_sint64*)x, (M_sint64)v)
+#define ATOM_SUBTEST64(x, v)	ATOM_SUBTEST64_X86_GCC((M_sint64*)x, (M_sint64)v)
+#define ATOM_INCTEST64(x)		ATOM_INCTEST64_X86_GCC((M_sint64*)x)
+#define ATOM_DECTEST64(x)		ATOM_DECTEST64_X86_GCC((M_sint64*)x)
+
+#define ATOM_XCHG64(x, v)		ATOM_XCHG64_X86_GCC(x, v)
+#define ATOM_CMPXCHG64(x, oldv, newv)	ATOM_CMPXCHG64_X86_GCC((M_sint64*)x, (M_sint64)oldv, (M_sint64)newv)
+
+#else //__M_CFG_OS64
+
+#define	ATOM_ADD32	ATOM_ADD32_X86_GCC
+#define ATOM_SUB32	ATOM_SUB32_X86_GCC
+#define ATOM_INC32	ATOM_INC32_X86_GCC
+#define ATOM_DEC32	ATOM_DEC32_X86_GCC
+
+#define	ATOM_ADDTEST32(x, v)	ATOM_ADDTEST32_X86_GCC((M_sint32*)x, (M_sint32)v)
+#define ATOM_SUBTEST32(x, v)	ATOM_SUBTEST32_X86_GCC((M_sint32*)x, (M_sint32)v)
+#define ATOM_INCTEST32(x)		ATOM_INCTEST32_X86_GCC((M_sint32*)x)
+#define ATOM_DECTEST32(x)		ATOM_DECTEST32_X86_GCC((M_sint32*)x)
+
+#define ATOM_XCHG32(x, v)		ATOM_XCHG32_X86_GCC(x, v)
+#define ATOM_CMPXCHG32(x, oldv, newv)	ATOM_CMPXCHG32_X86_GCC((M_sint32*)x, (M_sint32)oldv, (M_sint32)newv)
+
+#endif //__M_CFG_OS64
+
+#endif	//end compiler
+
+#endif	//__M_CFG_CPU_X86
+
+#ifdef __M_CFG_ATOMIC
+
+#ifdef __M_CFG_OS64
+
+	#define ATOM_ADD_INTPTR	ATOM_ADD64
+	#define ATOM_SUB_INTPTR	ATOM_SUB64
+	#define ATOM_INC_INTPTR	ATOM_INC64
+	#define ATOM_DEC_INTPTR	ATOM_DEC64
+
+	#define ATOM_ADDTEST_INTPTR	ATOM_ADDTEST64
+	#define ATOM_SUBTEST_INTPTR	ATOM_SUBTEST64
+	#define ATOM_INCTEST_INTPTR	ATOM_INCTEST64
+	#define ATOM_DECTEST_INTPTR	ATOM_DECTEST64
+
+	#define ATOM_XCHG_INTPTR	ATOM_XCHG64
+	#define ATOM_CMPXCHG_INTPTR	ATOM_CMPXCHG64
+
+#else //__M_CFG_OS64
+	#define ATOM_ADD_INTPTR	ATOM_ADD32
+	#define ATOM_SUB_INTPTR	ATOM_SUB32
+	#define ATOM_INC_INTPTR	ATOM_INC32
+	#define ATOM_DEC_INTPTR	ATOM_DEC32
+
+	#define ATOM_ADDTEST_INTPTR	ATOM_ADDTEST32
+	#define ATOM_SUBTEST_INTPTR	ATOM_SUBTEST32
+	#define ATOM_INCTEST_INTPTR	ATOM_INCTEST32
+	#define ATOM_DECTEST_INTPTR	ATOM_DECTEST32
+
+	#define ATOM_XCHG_INTPTR	ATOM_XCHG32
+	#define ATOM_CMPXCHG_INTPTR	ATOM_CMPXCHG32
+
+#endif //__M_CFG_OS64
+
+#endif //__M_CFG_ATOMIC
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif	//__M_ASM_X86_H__

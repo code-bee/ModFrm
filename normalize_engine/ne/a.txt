@@ -1,0 +1,5 @@
+[rule]
+
+rule = caipiao.taobao.com/lottery/**1.htm
+
+normal_rule = caipiao.taobao.com/lottery/**1.htm

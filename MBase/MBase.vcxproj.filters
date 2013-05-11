@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="M_include">
+      <UniqueIdentifier>{897eec47-5224-46ba-b5da-c329173c6e3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="base_struct">
+      <UniqueIdentifier>{51cbf319-f816-444d-b221-fc7007a9e8df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="error">
+      <UniqueIdentifier>{f05d1e3c-a81e-456f-b23f-7505bb3ba2a0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MBase.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_asm.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_asm_x86.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_atomic.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_data_exchanger.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_hash.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_list.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_lqueue.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_os_misc.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_rbtree.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_tls.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_utility.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="error\M_error.c">
+      <Filter>error</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MBase_priv.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\M_types.h">
+      <Filter>M_include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase.h">
+      <Filter>M_include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\pthread.h">
+      <Filter>M_include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\sched.h">
+      <Filter>M_include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_asm.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_asm_x86.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_atomic.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_data_exchanger.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_hash.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_list.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_lqueue.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_os_misc.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_rbtree.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_tls.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_utility.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_error.h">
+      <Filter>error</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>
