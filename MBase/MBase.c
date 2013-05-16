@@ -7,8 +7,11 @@
 #ifdef __M_CFG_OS_WINDOWS
 
 #include <windows.h>
-
-#pragma comment(lib, "../lib/pthread.lib")
+#ifdef _DEBUG
+	#pragma comment(lib, "../debug/pthread.lib")
+#else
+	#pragma comment(lib, "../release/pthread.lib")
+#endif
 #pragma comment(lib, "ws2_32.lib")
 
 BOOL APIENTRY DllMain( HMODULE hModule,

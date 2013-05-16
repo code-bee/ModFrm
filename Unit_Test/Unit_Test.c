@@ -4,11 +4,13 @@
 #if (defined _WINDOWS) || (defined WIN32)
 #ifdef _DEBUG
 	#pragma comment(lib, "../debug/MBase.lib")
+	#pragma comment(lib, "../debug/pthread.lib")
 #else
 	#pragma comment(lib, "../release/MBase.lib")
+	#pragma comment(lib, "../release/pthread.lib")
 #endif
 
-#pragma comment(lib, "../lib/pthread.lib")
+
 
 #endif
 
