@@ -316,6 +316,69 @@ void bst_free_all(M_bst_stub** root,  M_free_t free_node, void* pool)
 	*root = NULL;
 }
 
+void replace_bst_node(M_bst_stub* old_node, M_bst_stub* new_node)
+{
+	new_node->parent = old_node->parent;
+	new_node->left = old_node->left;
+	new_node->right = old_node->right;
+
+	if(old_node->parent)
+	{
+		if(old_node->parent->left == old_node)
+			old_node->parent->left = new_node;
+		else
+			old_node->parent->right = new_node;
+	}
+
+	if(old_node->left)
+		old_node->left->parent = new_node;
+	if(old_node->right)
+		old_node->right->parent = new_node;
+}
+
+M_sint32 bst_get_node_count(M_bst_stub* root)
+{
+	M_sint32 count = 1;
+	M_bst_stub* tmp;
+
+	if(!root)
+		return 0;
+
+	while(root && count < 3)
+	{
+		if(root->left)
+		{
+			root = root->left;
+			++count;
+		}
+		else
+		{
+			if(root->right)
+			{
+				root = root->right;
+				++count;
+			}
+			else
+			{
+				tmp = root;
+				root = root->parent;
+				while(root && root->right == tmp)
+				{
+					tmp = root;
+					root = root->parent;
+				}
+				if(root && root->right != tmp)
+				{
+					root = root->right;
+					++count;
+				}
+			}
+		}
+	}
+
+	return count;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // red black tree
 ////////////////////////////////////////////////////////////////////////
@@ -588,4 +651,10 @@ M_sint32 rbt_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_k
 	set_rbcolor(*root, RB_BLACK);
 
 	return 1;
+}
+
+void replace_rbt_node(M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
+{
+	replace_bst_node(old_node, new_node);
+	set_rbcolor(new_node, get_rbcolor(old_node));
 }

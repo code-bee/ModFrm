@@ -763,6 +763,8 @@ M_sint32	UT_bsthash()
 	for(i=0; i<hash_len; i++)
 	{
 		r = hash.insearch(&hash, &ha[i].bst_stub);
+		head = (M_bst_stub**)hash.ht+i%10;
+		UT_ASSERT(bst_get_node_count(*head) == i/10 + 1 > 3 ? i/10+1 : 3);
 		ret &= UT_ASSERT(r == 1);
 	}
 
@@ -866,6 +868,7 @@ M_sint32	UT_bsthash()
 	for(i=0; i<10; i++)
 	{
 		head = (M_bst_stub**)hash.ht+i;
+		//UT_ASSERT(bst_get_node_count(*head) == 10);
 		cursor = bst_get_first(*head);
 		j = 0;
 		while(cursor != NULL)
@@ -2143,6 +2146,104 @@ M_sint32	UT_err()
 {
 	M_sint32 ret = 1;
 
+	UT_CONCLUDE(ret);
+	return ret;
+}
+
+/*
+	随机生成有1-3三种字符，长度为1~10的串100个，构建radix tree，
+	进行增删查改操作，然后释放tree，反复执行多次，看看是否有内存泄露
+*/
+
+#ifdef LOOP_COUNT
+#undef LOOP_COUNT
+#endif
+
+#define LOOP_COUNT  10000
+#define	STRING_NUM	10
+#define STRING_LEN	10
+#define CHAR_NUM	3
+
+typedef struct rt_ut_arg
+{
+	M_sint8*	key;
+	M_rt_stub	rt_stub;
+} rt_ut_arg_t;
+
+void rt_free(void* rt_stub, void* pool)
+{
+	free(container_of(rt_stub, rt_ut_arg_t, rt_stub));
+}
+
+M_sint32	UT_radix_tree()
+{
+	M_sint32 ret = 1;
+	M_sint32 i, j, k, l;
+	M_sint32 str_len;
+	M_sint8  base_ch = '0';
+	M_sint8	 str[STRING_NUM][STRING_LEN+1];
+	rt_ut_arg_t*	nodes[STRING_NUM];
+	M_rt_stub* root = NULL;
+	M_rt_stub* search_result = NULL;
+	M_sint32 matched_len = 0;
+	M_rt_arg extra_arg;
+	FILE* fp = fopen("D:\\radixtree.txt", "w+");
+	char* s[10] = {"1210",
+		"121021210",
+		"011202220",
+		"220120010",
+		"222201012",
+		"220",
+		"201012",
+		"1",
+		"2000000",
+		"00" };
+
+	srand(time(NULL));
+
+	for(i = 0; i<LOOP_COUNT; i++)
+	{
+		//构造字符串
+		//fprintf(fp, "start...\n");
+		for(j = 0; j<STRING_NUM; j++)
+		{
+			//str_len = rand() % STRING_LEN + 1;
+			//for(k=0; k<str_len; k++)
+			//	str[j][k] = rand() % CHAR_NUM + base_ch;
+			//	//str[j][k] = base_ch + j;
+			//str[j][k] = 0;
+			//fprintf(fp, "%s\n", str[j]);
+			//fflush(fp);
+			sprintf(str[j], "%s", s[j]);
+
+			nodes[j] = malloc(sizeof(rt_ut_arg_t));
+			nodes[j]->key = (M_sint8*)&(str[j]);
+			M_rt_init_node(&nodes[j]->rt_stub, nodes[j]->key, strlen(nodes[j]->key));
+			extra_arg.dummy_node = malloc(sizeof(M_rt_stub));
+			extra_arg.extra_node = NULL;
+			M_rt_insert(&root, &nodes[j]->rt_stub, &extra_arg);
+			if(extra_arg.extra_node)
+			{
+				free(extra_arg.extra_node);
+				extra_arg.extra_node = NULL;
+			}
+			if(!extra_arg.dummy_node)
+			{
+				extra_arg.dummy_node = malloc(sizeof(M_rt_stub));
+			}
+		}
+
+		for(j=0; j<STRING_NUM; j++)
+		{
+			search_result = M_rt_search(root, str[j], strlen(str[j]), RT_MODE_EXACT, &matched_len);
+			UT_ASSERT(search_result == nodes[j]);
+		}
+
+		M_rt_freeall(&root, rt_free, NULL);
+
+	}
+	
+	fclose(fp);
 	UT_CONCLUDE(ret);
 	return ret;
 }

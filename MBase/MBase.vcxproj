@@ -62,7 +62,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <DisableSpecificWarnings>4819;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -80,7 +81,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>CompileAsC</CompileAs>
-      <DisableSpecificWarnings>4819;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -91,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="base_struct\M_radix_tree.c" />
     <ClCompile Include="MBase.c" />
     <ClCompile Include="base_struct\M_asm.c" />
     <ClCompile Include="base_struct\M_asm_x86.c" />
@@ -106,6 +108,7 @@
     <ClCompile Include="error\M_error.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\M_include\MBase_header\M_radix_tree.h" />
     <ClInclude Include="MBase_priv.h" />
     <ClInclude Include="..\M_include\M_types.h" />
     <ClInclude Include="..\M_include\MBase.h" />

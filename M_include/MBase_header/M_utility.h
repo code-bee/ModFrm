@@ -34,6 +34,21 @@ MBASE_API	INLINE	void M_swapptr(M_sintptr* s1, M_sintptr* s2);
 */
 MBASE_API	INLINE	M_uint32	rand_int();
 
+typedef struct st_bulletin8
+{
+	M_uint8	board;
+} M_bulletin8;
+
+/*
+	init/destroy: mainly for multithread scenario
+*/
+MBASE_API	INLINE	void	M_b8_init(M_bulletin8* b8);
+MBASE_API	INLINE	void	M_b8_destroy(M_bulletin8* b8);
+MBASE_API	INLINE	void	M_b8_set(M_bulletin8* b8, M_uint32 mask);
+MBASE_API	INLINE	void	M_b8_clear(M_bulletin8* b8, M_uint32 mask);
+MBASE_API	INLINE	M_uint32 M_b8_get(M_bulletin8* b8, M_uint32 mask);
+
+
 #ifdef __cplusplus
 }
 #endif

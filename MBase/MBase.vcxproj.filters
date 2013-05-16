@@ -63,6 +63,9 @@
     <ClCompile Include="error\M_error.c">
       <Filter>error</Filter>
     </ClCompile>
+    <ClCompile Include="base_struct\M_radix_tree.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MBase_priv.h">
@@ -115,6 +118,9 @@
     </ClInclude>
     <ClInclude Include="..\M_include\MBase_header\M_error.h">
       <Filter>error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_radix_tree.h">
+      <Filter>base_struct</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

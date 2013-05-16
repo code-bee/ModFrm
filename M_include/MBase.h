@@ -30,6 +30,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 //#include "pthread.h"
 
@@ -38,6 +39,7 @@
 #include "MBase_header/M_utility.h"
 #include "MBase_header/M_list.h"
 #include "MBase_header/M_rbtree.h"
+#include "MBase_header/M_radix_tree.h"
 #include "MBase_header/M_atomic.h"
 #include "MBase_header/M_data_exchanger.h"
 #include "MBase_header/M_lqueue.h"

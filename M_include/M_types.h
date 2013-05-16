@@ -104,7 +104,12 @@ typedef M_uintptr		M_size_t;
 typedef M_sintptr	(* cmp_key_t)(void* key1, void* key2);
 typedef void*		(* get_key_t)(void* stub);
 typedef	M_sint32	(* get_rbcolor_t)(void* stub);
-typedef	void		(* set_rbcolor_t)(void* stub, int color);
+typedef	void		(* set_rbcolor_t)(void* stub, M_sint32 color);
+
+static INLINE M_sintptr	cmp_key_M_sint8(void* key1, void* key2)
+{
+	return (M_sintptr)(*(M_sint8*)key1 - *(M_sint8*)key2);
+}
 
 static INLINE M_sintptr	cmp_key_M_sint32(void* key1, void* key2)
 {

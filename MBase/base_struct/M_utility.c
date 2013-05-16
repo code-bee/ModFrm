@@ -141,3 +141,25 @@ INLINE	M_uint32	rand_int()
 
 	return r;
 }
+
+
+INLINE	void	 M_b8_init(M_bulletin8* b8)
+{
+	b8->board = 0;
+}
+INLINE	void	 M_b8_destroy(M_bulletin8* b8)
+{
+	b8->board = 0;
+}
+INLINE	void	M_b8_set(M_bulletin8* b8, M_uint32 mask)
+{
+	b8->board |= (M_uint8)mask;
+}
+INLINE	void M_b8_clear(M_bulletin8* b8, M_uint32 mask)
+{
+	b8->board &= ~(M_uint8)mask;
+}
+INLINE	M_uint32 M_b8_get(M_bulletin8* b8, M_uint32 mask)
+{
+	return (M_uint32)(b8->board & (M_uint8)mask);
+}

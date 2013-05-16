@@ -55,6 +55,7 @@
       </PrecompiledHeaderOutputFile>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>../M_include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -75,6 +76,7 @@
       </PrecompiledHeaderOutputFile>
       <CompileAs>CompileAsC</CompileAs>
       <AdditionalIncludeDirectories>../M_include</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

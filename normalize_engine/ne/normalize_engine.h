@@ -139,11 +139,11 @@ typedef struct st_delim
 	M_slist		seg_list;
 } delim_t;
 
-typedef struct st_delim_info
-{} delim_info_t;
+//typedef struct st_delim_info
+//{} delim_info_t;
 
-int	build_delim_info(ne_cfg_t* cfg, delim_info_t* dinfo);
-void free_delim_info(delim_info_t* dinfo);
+//int	build_delim_info(ne_cfg_t* cfg, delim_info_t* dinfo);
+//void free_delim_info(delim_info_t* dinfo);
 
 #endif //__NORMALIZE_ENGINE_H__
 
