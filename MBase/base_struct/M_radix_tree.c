@@ -77,7 +77,10 @@ static INLINE M_rt_stub* search_branch(M_rt_stub* node, M_sint8 key)
 static INLINE void	replace_rt_node(M_rt_stub* old_node, M_rt_stub* new_node, M_rt_stub** root, M_sint32 pos)
 {
 	M_rt_stub* tmp;
-	replace_rbt_node(&old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
+	if(old_node->parent)
+		replace_rbt_node(&old_node->parent->branches, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
+	else
+		replace_rbt_node(NULL, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
 	new_node->parent = old_node->parent;
 	new_node->branches = old_node->branches;
 
@@ -228,12 +231,12 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 	M_sint32 skey_len = insert_node->skey_len;
 	M_sint8* skey = insert_node->skey;
 
-	printf("insert %s", insert_node->skey);
+	//printf("insert %s", insert_node->skey);
 
 	if(!t)
 	{		
 		*root = insert_node;
-		printf(" success insert as root\n");
+		//printf(" success insert as root\n");
 		return NULL;
 	}
 
@@ -269,20 +272,20 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 			{
 				if(is_rt_valid(t))	//caes 1.2)
 				{
-					printf(" fail\n");
+					//printf(" fail\n");
 					return t;
 				}
 				else				//case 1.1)
 				{
 					replace_rt_node(t, insert_node, root, -1);
 					arg->extra_node = t;
-					printf(" success, ");
-					while(insert_node)
-					{
-						printf("node is %s, %d, ", insert_node->skey, insert_node->skey_len);
-						insert_node = insert_node->parent;
-					}
-					printf("\n");
+					//printf(" success, ");
+					//while(insert_node)
+					//{
+					//	printf("node is %s, %d, ", insert_node->skey, insert_node->skey_len);
+					//	insert_node = insert_node->parent;
+					//}
+					//printf("\n");
 					return NULL;
 				}
 			}
@@ -304,7 +307,7 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 		{
 			rbt_remove_node(&(p->branches), &(t->branch_stub), get_rbcolor_rt, set_rbcolor_rt);
 			add_rt_leaf(p, insert_node, key_pos - pos);
-			add_rt_leaf(insert_node, t, t->skey_len - pos);
+			add_rt_leaf(insert_node, t, pos);
 		}
 		else	// both are not partly matches, case 4.1)
 		{
@@ -318,13 +321,13 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 		}
 	}
 	
-	printf(" success, ");
-	while(insert_node)
-	{
-		printf("node is %s, %d, ", insert_node->skey, insert_node->skey_len);
-		insert_node = insert_node->parent;
-	}
-	printf("\n");
+	//printf(" success, ");
+	//while(insert_node)
+	//{
+	//	printf("node is %s, %d, ", insert_node->skey, insert_node->skey_len);
+	//	insert_node = insert_node->parent;
+	//}
+	//printf("\n");
 
 
 	return NULL;
@@ -381,46 +384,59 @@ M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* a
 	return remove_node;
 
 }
+
+static INLINE void	add_to_free_node_list(M_bst_stub* bst_stub, M_rt_stub** rt_list_last, M_bst_stub** bst_list_last)
+{
+	(*rt_list_last)->parent = get_rt_node(bst_stub);
+	*rt_list_last = (*rt_list_last)->parent;
+
+	printf("%s(%d) insert into rt_node list\n", (*rt_list_last)->skey, (*rt_list_last)->skey_len);
+
+	(*bst_list_last)->parent = bst_stub;
+	(*bst_list_last) = (*bst_list_last)->parent;
+}
+
 void		M_rt_freeall(M_rt_stub** root, M_free_t free_node, void* pool)
 {
-	M_rt_stub* last = *root;
+	M_rt_stub* head = *root;
+	M_rt_stub* last = head;
 	M_rt_stub* tmp;
 	M_bst_stub* bst_head;
 	M_bst_stub* bst_last;
+
+	if(last)
+		printf("%s(%d) insert into rt_node list\n", last->skey, last->skey_len);
 	
-	while(last)
+	while(head)
 	{
-		bst_head = last->branches;
+		bst_head = head->branches;
 		bst_last = bst_head;
 
 		while(bst_head)
 		{
+			add_to_free_node_list(bst_head, &last, &bst_last);
+
 			if(bst_head->left)
-			{
-				last->parent = get_rt_node(bst_head->left);
-				last = last->parent;
-
-				bst_last->parent = bst_head->left;
-				bst_last = bst_last->parent;
-			}
+				add_to_free_node_list(bst_head->left, &last, &bst_last);
 			if(bst_head->right)
-			{
-				last->parent = get_rt_node(bst_head->right);
-				last = last->parent;
+				add_to_free_node_list(bst_head->right, &last, &bst_last);
 
-				bst_last->parent = bst_head->right;
-				bst_last = bst_last->parent;
-			}
 			bst_last->parent = NULL;
-
 			bst_head = bst_head->parent;
 		}
 
-		tmp = last;
-		last = last->parent;
+		last->parent = NULL;
+
+		tmp = head;
+		head = head->parent;
 		if(free_node)
 			free_node(tmp, pool);
 	}
 
 	*root = NULL;
+}
+
+M_sint32	M_rt_isvalid(M_rt_stub* node)
+{
+	return is_rt_valid(node);
 }

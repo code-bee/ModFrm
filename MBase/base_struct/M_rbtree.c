@@ -316,7 +316,7 @@ void bst_free_all(M_bst_stub** root,  M_free_t free_node, void* pool)
 	*root = NULL;
 }
 
-void replace_bst_node(M_bst_stub* old_node, M_bst_stub* new_node)
+void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node)
 {
 	new_node->parent = old_node->parent;
 	new_node->left = old_node->left;
@@ -334,6 +334,9 @@ void replace_bst_node(M_bst_stub* old_node, M_bst_stub* new_node)
 		old_node->left->parent = new_node;
 	if(old_node->right)
 		old_node->right->parent = new_node;
+
+	if(root && *root == old_node)
+		*root = new_node;
 }
 
 M_sint32 bst_get_node_count(M_bst_stub* root)
@@ -653,8 +656,8 @@ M_sint32 rbt_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_k
 	return 1;
 }
 
-void replace_rbt_node(M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
+void replace_rbt_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
 {
-	replace_bst_node(old_node, new_node);
+	replace_bst_node(root, old_node, new_node);
 	set_rbcolor(new_node, get_rbcolor(old_node));
 }

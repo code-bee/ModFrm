@@ -112,6 +112,7 @@ MBASE_API	M_rt_stub*	M_rt_remove(M_rt_stub** root, M_sint8* key, M_sint32 key_le
 MBASE_API	M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* arg/*, get_key_t get_key*/);
 MBASE_API	void		M_rt_freeall(M_rt_stub** root, M_free_t free_node, void* pool);
 
+MBASE_API	M_sint32	M_rt_isvalid(M_rt_stub* node);
 #ifdef __cplusplus
 }
 #endif

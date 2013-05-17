@@ -2170,9 +2170,13 @@ typedef struct rt_ut_arg
 	M_rt_stub	rt_stub;
 } rt_ut_arg_t;
 
-void rt_free(void* rt_stub, void* pool)
+void rt_free(M_rt_stub* rt_stub, void* pool)
 {
-	free(container_of(rt_stub, rt_ut_arg_t, rt_stub));
+	printf("freeing %s(%d)\n", rt_stub->skey, rt_stub->skey_len);
+	if(M_rt_isvalid(rt_stub))
+		free(container_of(rt_stub, rt_ut_arg_t, rt_stub));
+	else
+		free(rt_stub);
 }
 
 M_sint32	UT_radix_tree()
@@ -2188,16 +2192,28 @@ M_sint32	UT_radix_tree()
 	M_sint32 matched_len = 0;
 	M_rt_arg extra_arg;
 	FILE* fp = fopen("D:\\radixtree.txt", "w+");
-	char* s[10] = {"1210",
-		"121021210",
-		"011202220",
-		"220120010",
-		"222201012",
-		"220",
-		"201012",
-		"1",
-		"2000000",
-		"00" };
+	char* s[10] = {
+		"1221",
+		"1211",
+		"1010112",
+		"21",
+		"202",
+		"010211",
+		"2",
+		"0",
+		"21100",
+		"21122"
+	};
+	//char* s[10] = {"1210",
+	//	"121021210",
+	//	"011202220",
+	//	"220120010",
+	//	"222201012",
+	//	"220",
+	//	"201012",
+	//	"1",
+	//	"2000000",
+	//	"00" };
 
 	srand(time(NULL));
 
@@ -2231,13 +2247,31 @@ M_sint32	UT_radix_tree()
 			{
 				extra_arg.dummy_node = malloc(sizeof(M_rt_stub));
 			}
+			
+			
 		}
 
-		for(j=0; j<STRING_NUM; j++)
+		//printf("start nodes %d: %s...\n", j, nodes[j]->key);
+		for(k=0; k<STRING_NUM; k++)
 		{
-			search_result = M_rt_search(root, str[j], strlen(str[j]), RT_MODE_EXACT, &matched_len);
-			UT_ASSERT(search_result == nodes[j]);
+			search_result = &(nodes[k]->rt_stub);
+			printf("node %s(%d)", search_result->skey, search_result->skey_len);
+			search_result = search_result->parent;
+			while(search_result)
+			{
+				printf(" -> %s(%d)", search_result->skey, search_result->skey_len);
+				search_result = search_result->parent;
+			}
+			printf("\n");
 		}
+
+		for(k=0; k<STRING_NUM; k++)
+		{
+			search_result = M_rt_search(root, str[k], strlen(str[k]), RT_MODE_EXACT, &matched_len);
+			UT_ASSERT(!strcmp(str[k], nodes[k]->key));
+			printf("%s search successfully\n", str[k]);
+		}
+		printf("\n");
 
 		M_rt_freeall(&root, rt_free, NULL);
 

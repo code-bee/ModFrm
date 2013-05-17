@@ -59,8 +59,9 @@ MBASE_API void bst_free_all(M_bst_stub** root, M_free_t free_node, void* pool);
 
 /*
 	only pointers are revised, key is not considered here
+	if old_node is just root, tree root is necessary to be revised
 */
-MBASE_API void replace_bst_node(M_bst_stub* old_node, M_bst_stub* new_node);
+MBASE_API void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node);
 
 /*
 	for radix tree use only, 
@@ -88,7 +89,7 @@ MBASE_API void rbt_remove_node(M_bst_stub** root, M_bst_stub* x, get_rbcolor_t g
 /*
 	pointers and color are revised, key is not considered here
 */
-MBASE_API void replace_rbt_node(M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor);
+MBASE_API void replace_rbt_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor);
 
 
 #ifdef __cplusplus
