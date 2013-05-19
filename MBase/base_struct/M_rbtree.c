@@ -339,42 +339,72 @@ void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_n
 		*root = new_node;
 }
 
-M_sint32 bst_get_node_count(M_bst_stub* root)
+void bst_travel(M_bst_stub* root, bst_traveller_t bst_traveller, void* param)
 {
-	M_sint32 count = 1;
 	M_bst_stub* tmp;
 
-	if(!root)
-		return 0;
-
-	while(root && count < 3)
+	while(root)
 	{
+		bst_traveller(root, param);
 		if(root->left)
-		{
 			root = root->left;
-			++count;
-		}
 		else
 		{
 			if(root->right)
-			{
 				root = root->right;
-				++count;
-			}
 			else
 			{
 				tmp = root;
 				root = root->parent;
-				while(root && root->right == tmp)
+				while(root && (root->right == tmp || !root->right))
 				{
 					tmp = root;
 					root = root->parent;
 				}
 				if(root && root->right != tmp)
-				{
 					root = root->right;
-					++count;
+			}
+		}
+	}
+}
+
+static INLINE void bst_count_traveller(M_bst_stub* t, M_sint32* count)
+{
+	++(*count);
+}
+
+M_sint32 bst_get_node_count(M_bst_stub* root)
+{
+	M_sint32 count = 0;
+	bst_travel(root, bst_count_traveller, &count);
+	return count;
+}
+
+M_sint32 bst_get_node_count_for_rt_tree(M_bst_stub* root)
+{
+	M_sint32 count = 0;
+	M_bst_stub* tmp;
+
+	while(root && count < 3)
+	{
+		++count;
+		if(root->left)
+			root = root->left;
+		else
+		{
+			if(root->right)
+				root = root->right;
+			else
+			{
+				tmp = root;
+				root = root->parent;
+				while(root && (root->right == tmp || !root->right))
+				{
+					tmp = root;
+					root = root->parent;
 				}
+				if(root && root->right != tmp)
+					root = root->right;
 			}
 		}
 	}

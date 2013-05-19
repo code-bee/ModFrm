@@ -71,12 +71,88 @@ static INLINE M_rt_stub* search_branch(M_rt_stub* node, M_sint8 key)
 	return rbt_stub ? get_rt_node(rbt_stub) : NULL;
 }
 
-/*
-	replace old_node with new_node
-*/
-static INLINE void	replace_rt_node(M_rt_stub* old_node, M_rt_stub* new_node, M_rt_stub** root, M_sint32 pos)
+static INLINE void replace_parent(M_bst_stub* bst_stub, void* parent)
 {
-	M_rt_stub* tmp;
+	get_rt_node(bst_stub)->parent = parent;
+}
+
+
+static INLINE void update_rt_parent(M_rt_stub* c, M_rt_stub** root)
+{
+	M_rt_stub* p = c->parent;
+	if(p)
+	{
+		if(!is_rt_valid(p) && p->branches && p->skey)
+			p->skey = get_rt_node(p->branches)->skey - p->skey_len;
+	}
+	else
+		*root = c;
+}
+static INLINE void update_rt_children(M_rt_stub* c)
+{
+	if(c)
+		bst_travel(c->branches, replace_parent, c);
+}
+
+/*
+	add node c to parent node p. 
+	c must be out side of radix tree
+	this function mainly process skey and skey_len of both p and cl
+	
+	p and c meet following 2 conditions:
+	1. p->skey is a subset of c->skey, 
+	2. c->skey + pos matches p->skey + p->skey_len, 
+	   that means c->skey(pos - p->skey_len : pos) matches p->skey(0 : p->skey_len)
+
+	it's user's responsibility to call update_parent and update_children
+*/
+static INLINE void add_rt_node(M_rt_stub* p, M_rt_stub* c, M_sint8* key, M_sint16 key_len)
+{
+	c->parent = p;
+
+	c->skey = key;
+	c->skey_len = key_len;
+
+	rbt_insert(&p->branches, &c->branch_stub, cmp_key_rt, get_key_rt, get_rbcolor_rt, set_rbcolor_rt);
+} 
+
+/*
+	insert_node + pos matches cut_node->parent + skey_len
+
+	it has already updated parent, while update_children is not called yet
+*/
+static INLINE void cut_and_add_rt_node(M_rt_stub* cut, M_rt_stub* insert, M_rt_stub** root, M_sint8* key, M_sint16 key_len)
+{
+	M_rt_stub* p = cut->parent;
+
+	if(p && key_len)
+	{
+		rbt_remove_node(&(p->branches), &(cut->branch_stub), get_rbcolor_rt, set_rbcolor_rt);
+		add_rt_node(p, insert, key, key_len);
+		update_rt_parent(insert, root);
+	}
+	else
+	{
+		*root = insert;
+		insert->parent = NULL;
+		
+		insert->skey_len = key_len;
+		if(key_len)
+			insert->skey = key;
+		else
+			insert->skey = NULL;
+	}
+}
+
+/*
+	one of these 2 nodes must be valid, and the other must be invalid
+	
+	replace_rt_node just changes the validation of rt_node, only called when exact match happens
+
+	update_parent and update_children are both not called yet
+*/
+static INLINE void replace_rt_node(M_rt_stub* old_node, M_rt_stub* new_node)
+{
 	if(old_node->parent)
 		replace_rbt_node(&old_node->parent->branches, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
 	else
@@ -85,72 +161,8 @@ static INLINE void	replace_rt_node(M_rt_stub* old_node, M_rt_stub* new_node, M_r
 	new_node->branches = old_node->branches;
 
 	if(is_rt_valid(new_node))
-	{
 		new_node->skey += new_node->skey_len - old_node->skey_len;
-		new_node->skey_len = old_node->skey_len;
-	}
-	else
-	{
-		
-		new_node->skey = pos ? old_node->skey : NULL; //old_node->skey is temporarily used here, 
-													  //it will be replaced to skey of its child in add_rt_leaf soon
-		new_node->skey_len = pos;
-		new_node->branches = NULL;
-
-		//if(new_node->branches)
-		//{
-		//	if(!pos)
-		//	{
-		//		new_node->skey = NULL;
-		//		new_node->skey_len = 0;
-		//	}
-		//	else
-		//	{
-		//		tmp = get_rt_node(old_node->branches);
-		//		new_node->skey = get_rt_node(old_node->branches)->skey - old_node->skey_len;
-		//	}
-
-		//}
-		//else
-		//{
-		//	new_node->skey = old_node->skey;		//temporary use, will be replaced to skey of its child in add_rt_leaf soon
-		//	new_node->skey_len = old_node->skey_len;
-		//}
-	}
-
-	if(!new_node->parent)
-		*root = new_node;
-}
-
-/*
-	add leaf node l to parent node p. 
-	l must be independent node, skey locates at head of key string, skey_len is the length of total key string
-	this function mainly process skey and skey_len of both p and l
-	
-	p and l meet following 2 conditions:
-	1. p->skey is a subset of l->skey, 
-	2. l->skey + pos matches p->skey + p->skey_len, 
-	   that means l->skey(pos - p->skey_len : pos) matches p->skey(0 : p->skey_len)
-*/
-static INLINE void add_rt_leaf(M_rt_stub* p, M_rt_stub* l, M_sint32 pos)
-{
-	l->parent = p;
-
-	l->skey += pos;
-	if(!l->branches)
-		l->skey_len = (M_sint16)strlen(l->skey);
-	else
-		l->skey_len -= (M_sint16)pos;
-
-	rbt_insert(&p->branches, &l->branch_stub, cmp_key_rt, get_key_rt, get_rbcolor_rt, set_rbcolor_rt);
-
-	//update skey of parent, if parent is invalid.
-	//this operation is necessary if branches is changed
-	if(p->skey)
-	{
-		if(!is_rt_valid(p))
-			p->skey = get_rt_node(p->branches)->skey - p->skey_len;
-	}
+	new_node->skey_len = old_node->skey_len;
 }
 
 void		M_rt_init_node(M_rt_stub* node, M_sint8* key, M_sint32 key_len)
@@ -231,12 +243,9 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 	M_sint32 skey_len = insert_node->skey_len;
 	M_sint8* skey = insert_node->skey;
 
-	//printf("insert %s", insert_node->skey);
-
 	if(!t)
 	{		
 		*root = insert_node;
-		//printf(" success insert as root\n");
 		return NULL;
 	}
 
@@ -245,12 +254,6 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 		p = t;
 		if( !(t = search_branch(t, skey[key_pos])) )	//case 0.0)
 			t = p;
-		//if(!t)
-		//{
-		//	add_rt_leaf(p, insert_node, insert_node->skey_len);
-		//	printf(" success insert as root's leaf, root is %s, %d\n", p->skey, p->skey_len);
-		//	return NULL;
-		//}
 	}
 
 	while(t)
@@ -271,21 +274,13 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 			else	//match successful
 			{
 				if(is_rt_valid(t))	//caes 1.2)
-				{
-					//printf(" fail\n");
 					return t;
-				}
 				else				//case 1.1)
 				{
-					replace_rt_node(t, insert_node, root, -1);
+					replace_rt_node(t, insert_node);
+					update_rt_parent(insert_node, root);
+					update_rt_children(insert_node);
 					arg->extra_node = t;
-					//printf(" success, ");
-					//while(insert_node)
-					//{
-					//	printf("node is %s, %d, ", insert_node->skey, insert_node->skey_len);
-					//	insert_node = insert_node->parent;
-					//}
-					//printf("\n");
 					return NULL;
 				}
 			}
@@ -299,36 +294,30 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 	//case 2.1), 3.1) and 4.1) are still left
 	if(pos == t->skey_len)	// insert node, case 2.1) and 0.0)
 	{
-		add_rt_leaf(t, insert_node, key_pos);
+		add_rt_node(t, insert_node, insert_node->skey + key_pos, insert_node->skey_len - key_pos);
+		update_rt_parent(insert_node, root);
 	}
 	else
 	{
 		if(key_pos == skey_len)	// insert node totally matches, case 3.1)
 		{
-			rbt_remove_node(&(p->branches), &(t->branch_stub), get_rbcolor_rt, set_rbcolor_rt);
-			add_rt_leaf(p, insert_node, key_pos - pos);
-			add_rt_leaf(insert_node, t, pos);
-		}
+			cut_and_add_rt_node(t, insert_node, root, insert_node->skey + key_pos - pos, pos);
+			add_rt_node(insert_node, t, t->skey + pos, t->skey_len - pos);
+	}
 		else	// both are not partly matches, case 4.1)
 		{
+			memset(arg->dummy_node, 0, sizeof(M_rt_stub));
 			M_b8_init(&arg->dummy_node->flag);
 			set_rt_invalid(arg->dummy_node);
-			replace_rt_node(t, arg->dummy_node, root, pos);
-			add_rt_leaf(arg->dummy_node, insert_node, key_pos);
-			add_rt_leaf(arg->dummy_node, t, pos);
+			cut_and_add_rt_node(t, arg->dummy_node, root, t->skey, pos);
+			add_rt_node(arg->dummy_node, t, t->skey + pos, t->skey_len - pos);
+			add_rt_node(arg->dummy_node, insert_node, insert_node->skey + key_pos, insert_node->skey_len - key_pos);
+			//update_rt_children(arg->dummy_node);	//is not necessary here
+			update_rt_parent(t, root);
 
 			arg->dummy_node = NULL;
 		}
 	}
-	
-	//printf(" success, ");
-	//while(insert_node)
-	//{
-	//	printf("node is %s, %d, ", insert_node->skey, insert_node->skey_len);
-	//	insert_node = insert_node->parent;
-	//}
-	//printf("\n");
-
 
 	return NULL;
 }
@@ -337,7 +326,8 @@ M_rt_stub*	M_rt_remove(M_rt_stub** root, M_sint8* key, M_sint32 key_len, M_rt_ar
 {
 	M_sint32 key_pos;
 	M_rt_stub* remove_node = M_rt_search(*root, key, key_len, RT_MODE_EXACT, &key_pos);
-	return M_rt_removenode(root, remove_node, arg);
+
+	return remove_node ? M_rt_removenode(root, remove_node, arg) : NULL;
 }
 
 M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* arg)
@@ -350,16 +340,17 @@ M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* a
 		if(p)//if it has parent
 		{
 			rbt_remove_node(&p->branches, &remove_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
-			if(is_rt_valid(p) || bst_get_node_count(p->branches) > 2)	//case 2.1), invalid node must has more than 1 child
-			{}															//keep this empty block for easier code reading
+			if(is_rt_valid(p) || bst_get_node_count_for_rt_tree(p->branches) > 1)	//case 2.1), invalid node must has more than 1 child
+			{
+				update_rt_parent(remove_node, root);
+			}
 			else	//case 2.2). node must be invalid, and has just 2 children
 			{
 				tmp = get_rt_node(p->branches);
-				replace_rt_node(p, tmp, root, -1);
-				arg->extra_node = p;
+				cut_and_add_rt_node(p, tmp, root, tmp->skey - p->skey_len, tmp->skey_len + p->skey_len);
+				//update_rt_children(p->branches);	//is not necessary here
 
-				if(!tmp->parent)
-					*root = tmp;
+				arg->extra_node = p;
 			}
 		}
 		else
@@ -367,16 +358,22 @@ M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* a
 	}
 	else
 	{
-		if(bst_get_node_count(remove_node->branches) == 1)	// case 3.
+		if(bst_get_node_count_for_rt_tree(remove_node->branches) == 1)	// case 3.
 		{
-			rbt_remove_node(&p->branches, &remove_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
-			add_rt_leaf(p, get_rt_node(remove_node->branches), -remove_node->skey_len);
+			tmp = get_rt_node(remove_node->branches);
+			cut_and_add_rt_node(remove_node, tmp, root, tmp->skey - remove_node->skey_len, tmp->skey_len + remove_node->skey_len);
+			update_rt_children(remove_node->parent); 
 		}
 		else	// case 4.
 		{
 			M_b8_init(&arg->dummy_node->flag);
 			set_rt_invalid(arg->dummy_node);
-			replace_rt_node(remove_node, arg->dummy_node, root, -1);
+			replace_rt_node(remove_node, arg->dummy_node);
+			//following sequence is essential
+			update_rt_children(arg->dummy_node);
+			update_rt_parent(get_rt_node(arg->dummy_node->branches), root);
+			update_rt_parent(arg->dummy_node, root);
+
 			arg->dummy_node = NULL;
 		}
 	}
@@ -390,7 +387,7 @@ static INLINE void	add_to_free_node_list(M_bst_stub* bst_stub, M_rt_stub** rt_li
 	(*rt_list_last)->parent = get_rt_node(bst_stub);
 	*rt_list_last = (*rt_list_last)->parent;
 
-	printf("%s(%d) insert into rt_node list\n", (*rt_list_last)->skey, (*rt_list_last)->skey_len);
+	//printf("%s(%d) insert into rt_node list\n", (*rt_list_last)->skey, (*rt_list_last)->skey_len);
 
 	(*bst_list_last)->parent = bst_stub;
 	(*bst_list_last) = (*bst_list_last)->parent;
@@ -404,25 +401,28 @@ void		M_rt_freeall(M_rt_stub** root, M_free_t free_node, void* pool)
 	M_bst_stub* bst_head;
 	M_bst_stub* bst_last;
 
-	if(last)
-		printf("%s(%d) insert into rt_node list\n", last->skey, last->skey_len);
+	//if(last)
+	//	printf("%s(%d) insert into rt_node list\n", last->skey, last->skey_len);
 	
 	while(head)
 	{
 		bst_head = head->branches;
 		bst_last = bst_head;
 
-		while(bst_head)
+		if(bst_head)
 		{
 			add_to_free_node_list(bst_head, &last, &bst_last);
 
-			if(bst_head->left)
-				add_to_free_node_list(bst_head->left, &last, &bst_last);
-			if(bst_head->right)
-				add_to_free_node_list(bst_head->right, &last, &bst_last);
+			while(bst_head)
+			{
+				if(bst_head->left)
+					add_to_free_node_list(bst_head->left, &last, &bst_last);
+				if(bst_head->right)
+					add_to_free_node_list(bst_head->right, &last, &bst_last);
 
-			bst_last->parent = NULL;
-			bst_head = bst_head->parent;
+				bst_last->parent = NULL;
+				bst_head = bst_head->parent;
+			}
 		}
 
 		last->parent = NULL;

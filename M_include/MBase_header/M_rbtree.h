@@ -67,7 +67,12 @@ MBASE_API void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_s
 	for radix tree use only, 
 	just has 4 return values: 0, 1, 2, 3. nodes count greater than 3 all returns 3
 */
+MBASE_API M_sint32 bst_get_node_count_for_rt_tree(M_bst_stub* root);
+
 MBASE_API M_sint32 bst_get_node_count(M_bst_stub* root);
+
+typedef void (*bst_traveller_t)(M_bst_stub* t, void* param);
+MBASE_API void bst_travel(M_bst_stub* root, bst_traveller_t bst_traveller, void* param);
 
 
 ////////////////////////////////////////////////////////////////////////
