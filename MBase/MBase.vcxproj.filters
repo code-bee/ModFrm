@@ -66,6 +66,9 @@
     <ClCompile Include="base_struct\M_radix_tree.c">
       <Filter>base_struct</Filter>
     </ClCompile>
+    <ClCompile Include="base_struct\M_lightpool.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MBase_priv.h">
@@ -120,6 +123,9 @@
       <Filter>error</Filter>
     </ClInclude>
     <ClInclude Include="..\M_include\MBase_header\M_radix_tree.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_lightpool.h">
       <Filter>base_struct</Filter>
     </ClInclude>
   </ItemGroup>

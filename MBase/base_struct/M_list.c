@@ -40,7 +40,18 @@ INLINE M_slist* slist_remove(M_slist* head)
 	return remv;
 }
 
+INLINE void slist_travel(M_slist* head, traveller_t slist_traveller, void* param)
+{
+	M_slist* tmp1 = head->next;
+	M_slist* tmp2;
 
+	while(tmp1 != head)
+	{
+		tmp2 = tmp1->next;
+		slist_traveller(tmp1, param);
+		tmp1 = tmp2;
+	}
+}
 
 /*
 	reverse single list, return new head

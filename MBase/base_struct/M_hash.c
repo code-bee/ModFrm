@@ -247,7 +247,7 @@ INLINE M_bst_stub* bst_getprev(M_bst_stub** root, M_bst_stub* stub)
 INLINE void _bst_insert(M_bst_stub*** root, M_bst_stub* node, M_bst_stub* stub, M_hash* hash)
 {
 	node = node;
-	rbt_insert(*root, stub, hash->cmp_key, hash->get_key, hash->get_color, hash->set_color);
+	rbt_insert_node(*root, stub, hash->cmp_key, hash->get_key, hash->get_color, hash->set_color);
 }
 INLINE M_bst_stub* bst_remove_self(M_bst_stub*** root, M_bst_stub* node, M_hash* hash)
 {
@@ -532,7 +532,7 @@ static INLINE M_sint32	bst_hash_insearch(M_hash* hash, M_bst_stub* hash_stub)
 	M_size index = (hash->hash_key(key)) % hash->ht_len;
 	M_bst_stub** root = hash_slot_addr(hash, index);
 
-	return rbt_insearch(root, hash_stub, hash->cmp_key, hash->get_key, hash->get_color, hash->set_color);
+	return rbt_insearch_node(root, hash_stub, hash->cmp_key, hash->get_key, hash->get_color, hash->set_color);
 }
 
 static INLINE void*	bst_hash_search(M_hash* hash, void* key)

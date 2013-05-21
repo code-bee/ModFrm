@@ -25,7 +25,7 @@ static INLINE void		set_rbcolor_rt(void* stub, M_sint32 color)
 	get_rt_node(stub)->color = (M_sint8)color;
 }
 
-static INLINE M_sint32	is_rt_valid(M_rt_stub* stub)
+INLINE M_sint32	rt_valid(M_rt_stub* stub)
 {
 	return (M_b8_get(&stub->flag, RT_NODE_VALID) == RT_NODE_VALID);
 }
@@ -82,7 +82,7 @@ static INLINE void update_rt_parent(M_rt_stub* c, M_rt_stub** root)
 	M_rt_stub* p = c->parent;
 	if(p)
 	{
-		if(!is_rt_valid(p) && p->branches && p->skey)
+		if(!rt_valid(p) && p->branches && p->skey)
 			p->skey = get_rt_node(p->branches)->skey - p->skey_len;
 	}
 	else
@@ -113,7 +113,7 @@ static INLINE void add_rt_node(M_rt_stub* p, M_rt_stub* c, M_sint8* key, M_sint1
 	c->skey = key;
 	c->skey_len = key_len;
 
-	rbt_insert(&p->branches, &c->branch_stub, cmp_key_rt, get_key_rt, get_rbcolor_rt, set_rbcolor_rt);
+	rbt_insert_node(&p->branches, &c->branch_stub, cmp_key_rt, get_key_rt, get_rbcolor_rt, set_rbcolor_rt);
 } 
 
 /*
@@ -147,25 +147,28 @@ static INLINE void cut_and_add_rt_node(M_rt_stub* cut, M_rt_stub* insert, M_rt_s
 /*
 	one of these 2 nodes must be valid, and the other must be invalid
 	
-	replace_rt_node just changes the validation of rt_node, only called when exact match happens
+	rt_replace_node just changes the validation of rt_node, only called when exact match happens
 
 	update_parent and update_children are both not called yet
 */
-static INLINE void replace_rt_node(M_rt_stub* old_node, M_rt_stub* new_node)
+static INLINE void rt_replace_node(M_rt_stub* old_node, M_rt_stub* new_node)
 {
 	if(old_node->parent)
-		replace_rbt_node(&old_node->parent->branches, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
+		rbt_replace_node(&old_node->parent->branches, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
 	else
-		replace_rbt_node(NULL, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
+		rbt_replace_node(NULL, &old_node->branch_stub, &new_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
 	new_node->parent = old_node->parent;
 	new_node->branches = old_node->branches;
 
-	if(is_rt_valid(new_node))
+	if(rt_valid(new_node))
 		new_node->skey += new_node->skey_len - old_node->skey_len;
+	else
+		new_node->skey = old_node->skey;
+
 	new_node->skey_len = old_node->skey_len;
 }
 
-void		M_rt_init_node(M_rt_stub* node, M_sint8* key, M_sint32 key_len)
+void		rt_init_node(M_rt_stub* node, M_sint8* key, M_sint32 key_len)
 {
 	memset(node, 0, sizeof(M_rt_stub));
 	node->skey = key;
@@ -174,7 +177,7 @@ void		M_rt_init_node(M_rt_stub* node, M_sint8* key, M_sint32 key_len)
 	M_b8_set(&node->flag, RT_NODE_VALID);
 }
 
-M_rt_stub*	M_rt_search(M_rt_stub* root, M_sint8* key, M_sint32 key_len, M_sint32 mode, M_sint32* key_pos)
+M_rt_stub*	rt_search(M_rt_stub* root, M_sint8* key, M_sint32 key_len, M_sint32 mode, M_sint32* key_pos)
 {
 	M_rt_stub* t = root;
 	M_rt_stub* p = NULL;			//t's parent, maybe invalid
@@ -200,7 +203,7 @@ M_rt_stub*	M_rt_search(M_rt_stub* root, M_sint8* key, M_sint32 key_len, M_sint32
 			{
 				if(t->branches)		//there are still childrens, go on...
 				{
-					if(is_rt_valid(t))
+					if(rt_valid(t))
 						p_valid = t;
 					p = t;
 					t = search_branch(t, key[*key_pos]);
@@ -233,7 +236,7 @@ M_rt_stub*	M_rt_search(M_rt_stub* root, M_sint8* key, M_sint32 key_len, M_sint32
 		return NULL;
 	}
 }
-M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*, get_key_t get_key*/)
+M_rt_stub*	rt_insert_node(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*, get_key_t get_key*/)
 {
 	M_rt_stub* t = *root;
 	M_rt_stub* p = NULL;		//parent of t
@@ -273,11 +276,11 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 			}
 			else	//match successful
 			{
-				if(is_rt_valid(t))	//caes 1.2)
+				if(rt_valid(t))	//caes 1.2)
 					return t;
 				else				//case 1.1)
 				{
-					replace_rt_node(t, insert_node);
+					rt_replace_node(t, insert_node);
 					update_rt_parent(insert_node, root);
 					update_rt_children(insert_node);
 					arg->extra_node = t;
@@ -322,15 +325,15 @@ M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*
 	return NULL;
 }
 
-M_rt_stub*	M_rt_remove(M_rt_stub** root, M_sint8* key, M_sint32 key_len, M_rt_arg* arg)
+M_rt_stub*	rt_remove(M_rt_stub** root, M_sint8* key, M_sint32 key_len, M_rt_arg* arg)
 {
 	M_sint32 key_pos;
-	M_rt_stub* remove_node = M_rt_search(*root, key, key_len, RT_MODE_EXACT, &key_pos);
+	M_rt_stub* remove_node = rt_search(*root, key, key_len, RT_MODE_EXACT, &key_pos);
 
-	return remove_node ? M_rt_removenode(root, remove_node, arg) : NULL;
+	return remove_node ? rt_remove_node(root, remove_node, arg) : NULL;
 }
 
-M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* arg)
+M_rt_stub*	rt_remove_node(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* arg)
 {
 	M_rt_stub* tmp = NULL;
 	M_rt_stub* p = remove_node->parent;
@@ -340,7 +343,7 @@ M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* a
 		if(p)//if it has parent
 		{
 			rbt_remove_node(&p->branches, &remove_node->branch_stub, get_rbcolor_rt, set_rbcolor_rt);
-			if(is_rt_valid(p) || bst_get_node_count_for_rt_tree(p->branches) > 1)	//case 2.1), invalid node must has more than 1 child
+			if(rt_valid(p) || bst_get_node_count_for_rt_tree(p->branches) > 1)	//case 2.1), invalid node must has more than 1 child
 			{
 				update_rt_parent(remove_node, root);
 			}
@@ -368,7 +371,7 @@ M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* a
 		{
 			M_b8_init(&arg->dummy_node->flag);
 			set_rt_invalid(arg->dummy_node);
-			replace_rt_node(remove_node, arg->dummy_node);
+			rt_replace_node(remove_node, arg->dummy_node);
 			//following sequence is essential
 			update_rt_children(arg->dummy_node);
 			update_rt_parent(get_rt_node(arg->dummy_node->branches), root);
@@ -393,7 +396,7 @@ static INLINE void	add_to_free_node_list(M_bst_stub* bst_stub, M_rt_stub** rt_li
 	(*bst_list_last) = (*bst_list_last)->parent;
 }
 
-void		M_rt_freeall(M_rt_stub** root, M_free_t free_node, void* pool)
+void		rt_free_all(M_rt_stub** root, M_free_t free_node, void* pool)
 {
 	M_rt_stub* head = *root;
 	M_rt_stub* last = head;
@@ -436,7 +439,59 @@ void		M_rt_freeall(M_rt_stub** root, M_free_t free_node, void* pool)
 	*root = NULL;
 }
 
-M_sint32	M_rt_isvalid(M_rt_stub* node)
+
+
+void		rt_init_pool(M_rt_pool* pool, M_sint32 stub_offset, M_sint32 max_nr_blocks)
 {
-	return is_rt_valid(node);
+	lp_init(max_nr_blocks, &pool->invalid_pool);
+	lp_init(max_nr_blocks, &pool->valid_pool);
+	pool->stub_offset = stub_offset;
+}
+void		rt_destroy_pool(M_rt_pool* pool)
+{
+	lp_destroy(&pool->invalid_pool);
+	lp_destroy(&pool->valid_pool);
+}
+
+void		rt_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
+{
+	if(!extra_arg->dummy_node)
+	{
+		extra_arg->dummy_node = rt_alloc(sizeof(M_rt_stub), pool);
+		M_b8_init(&extra_arg->dummy_node->flag);
+		set_rt_invalid(extra_arg->dummy_node);
+	}
+	if(extra_arg->extra_node)
+	{
+		rt_free(extra_arg->extra_node, pool);
+		extra_arg->extra_node = NULL;
+	}
+}
+
+void		rt_free_all_p(M_rt_stub** root, M_rt_pool* pool)
+{
+	rt_free_all(root, rt_free, pool);
+}
+
+void*	rt_alloc(M_sint32 size, M_rt_pool* pool)
+{
+	//M_sint8* ret = NULL;
+	if(size == sizeof(M_rt_stub))
+		return lp_alloc(size, &pool->invalid_pool);
+	else
+	{
+		return lp_alloc(size, &pool->valid_pool);
+		//if( (ret = (M_sint8*)lp_alloc(size, &pool->valid_pool)) )
+		//	return (M_rt_stub*)(ret + pool->stub_offset);
+		//else
+		//	return NULL;
+	}
+}
+void		rt_free(M_rt_stub* mem, M_rt_pool* pool)
+{
+	if(rt_valid(mem))
+		lp_free(((M_sint8*)mem) - pool->stub_offset, &pool->valid_pool);
+	else
+		lp_free(mem, &pool->invalid_pool);
+		
 }

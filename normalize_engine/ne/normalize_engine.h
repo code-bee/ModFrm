@@ -62,12 +62,12 @@ typedef struct st_ne_cfg
 	user_config_set_DECLARE(cfg_group_t);
 	user_config_set_DECLARE(cfg_rule_t);
 	//宏展开后等价于：
-	//cfg_common_t*	common_t_cfgs;
-	//int		common_t_nr_sets;
-	//cfg_group_t*	group_t_cfgs;
-	//int		group_t_nr_sets;
-	//cfg_rule_t*	rule_t_cfgs;
-	//int		rule_t_nr_sets;
+	//cfg_common_t*	cfg_common_t_cfgs;
+	//int			cfg_common_t_nr_sets;
+	//cfg_group_t*	cfg_group_t_cfgs;
+	//int			cfg_group_t_nr_sets;
+	//cfg_rule_t*	cfg_rule_t_cfgs;
+	//int			cfg_rule_t_nr_sets;
 
 	//另一种定义方式：
 	//user_config_set_t common;
@@ -133,7 +133,7 @@ typedef struct st_seg_info
 
 typedef struct st_delim
 {
-	//M_rdx_tree	rdx_stub;
+	M_rt_stub	rt_stub;
 	char		delim[FLAG_LEN];
 	M_slist		grp_list;
 	M_slist		seg_list;

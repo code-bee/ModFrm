@@ -222,7 +222,7 @@ M_sint32	M_tls_set(M_tls_key key, void* data)
 		atomic_wrlock(&s_tls.rwlock);
 		kt = (tls_key_t*)s_tls.key_array + (M_size_t)key;	//kt needs to be re-gotten, 
 															//because key_array may be moved during previous unlock period
-		rbt_insert(&(kt->root), &(node->bst_stub), tls_cmp_key, tls_get_key, tls_get_rbcolor, tls_set_rbcolor);
+		rbt_insert_node(&(kt->root), &(node->bst_stub), tls_cmp_key, tls_get_key, tls_get_rbcolor, tls_set_rbcolor);
 	}
 
 	atomic_rwunlock(&s_tls.rwlock);

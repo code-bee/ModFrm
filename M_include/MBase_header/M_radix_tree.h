@@ -21,6 +21,7 @@ extern "C" {
 	used in M_rt_stub->flag, as bit indicator
 */
 #define	RT_NODE_VALID	0x01
+#define RT_NODE_INVALID	0x00
 
 /*
 	longest/exact: returned node must be valid
@@ -53,18 +54,18 @@ typedef struct st_rt_arg
 } M_rt_arg;
 
 /*
-	M_rt_init_node:
+	rt_init_node:
 		init node before insert.
 		key_len could be 0, means that key is a common C string ended by '\0'
 		this function automatically set node valid.
 
-	M_rt_search:
+	rt_search:
 		key: to be searched string
 		key_len: can be 0, means that key is a common C string ended by '\0'
 		mode: longest match / exact match
 		matched_len: [out], return how many chars that matched if search successfully
 
-	M_rt_insert:
+	rt_insert_node:
 		there are 5 cases when insert a node to radix tree:
 		1. a node with exactly same key is already in radix tree
 			1) the node is invalid, then insert_node replace it. the invalid node returns via arg->extra_node
@@ -80,10 +81,10 @@ typedef struct st_rt_arg
 
 	   callback get_key is used to get key address of wrapper structure
 
-   M_rt_remove:
+   rt_remove:
 		there are 5 cases when remove a node from radix tree:
 		1. key is not found, return NULL
-		   BTW: M_rt_remove returns removed node if remove successfully, returns NULL if key is not found
+		   BTW: rt_remove returns removed node if remove successfully, returns NULL if key is not found
 	    2. remove_node is leaf node
 			a) its parent P is valid, remove remove_node is enough
 			b) P is invalid. in this case, P must has more than 1 child.
@@ -99,20 +100,65 @@ typedef struct st_rt_arg
 		4. remove node has more than 1 child
 			replace remove_node with arg->dummy_node, then return remove_node
 
-	M_rt_removenode: similar with M_rt_remove, but case 1 will never happen
+	rt_remove_node: similar with rt_remove, but case 1 will never happen
 
-	M_rt_freeall: free a radix tree. free_node is a callback written by user to free user node that wrappers M_rt_stub
+	rt_free_all: free a radix tree. free_node is a callback written by user to free user node that wrappers M_rt_stub
 				  pool points to a probable-used memory pool, which is needed by free_node
 		
 */
-MBASE_API	void		M_rt_init_node(M_rt_stub* node, M_sint8* key, M_sint32 key_len);
-MBASE_API	M_rt_stub*	M_rt_search(M_rt_stub* root, M_sint8* key, M_sint32 key_len, M_sint32 mode, M_sint32* matched_len);
-MBASE_API	M_rt_stub*	M_rt_insert(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*, get_key_t get_key*/);
-MBASE_API	M_rt_stub*	M_rt_remove(M_rt_stub** root, M_sint8* key, M_sint32 key_len, M_rt_arg* arg);
-MBASE_API	M_rt_stub*	M_rt_removenode(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* arg/*, get_key_t get_key*/);
-MBASE_API	void		M_rt_freeall(M_rt_stub** root, M_free_t free_node, void* pool);
+MBASE_API	void		rt_init_node(M_rt_stub* node, M_sint8* key, M_sint32 key_len);
+MBASE_API	M_rt_stub*	rt_search(M_rt_stub* root, M_sint8* key, M_sint32 key_len, M_sint32 mode, M_sint32* matched_len);
+MBASE_API	M_rt_stub*	rt_insert_node(M_rt_stub** root, M_rt_stub* insert_node, M_rt_arg* arg/*, get_key_t get_key*/);
+MBASE_API	M_rt_stub*	rt_remove(M_rt_stub** root, M_sint8* key, M_sint32 key_len, M_rt_arg* arg);
+MBASE_API	M_rt_stub*	rt_remove_node(M_rt_stub** root, M_rt_stub* remove_node, M_rt_arg* arg/*, get_key_t get_key*/);
+MBASE_API	void		rt_free_all(M_rt_stub** root, M_free_t free_node, void* pool);
 
-MBASE_API	M_sint32	M_rt_isvalid(M_rt_stub* node);
+MBASE_API	INLINE	M_sint32	rt_valid(M_rt_stub* node);
+
+/*
+	interface integrated with lightpool, so user may not care memory in this case
+*/
+typedef struct st_rt_pool
+{
+	M_lightpool	valid_pool;
+	M_lightpool invalid_pool;
+	M_sint32	stub_offset;
+} M_rt_pool;
+
+#define	rt_search_p	rt_search
+
+MBASE_API	void		rt_init_pool(M_rt_pool* pool, M_sint32 stub_offset, M_sint32 max_nr_blocks);
+MBASE_API	void		rt_destroy_pool(M_rt_pool* pool);
+
+MBASE_API	void		rt_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg);
+/*
+	only free nodes in radix tree, these nodes are kept in pool
+*/
+MBASE_API	void		rt_free_all_p(M_rt_stub** root, M_rt_pool* pool);
+
+/*
+	only 2 sizes are supported:
+		size of invalid node: sizeof(M_rt_stub)
+		size of valid node: sizeof(user_type_node), where stub_offset is offset of M_rt_stub in the structure
+
+	a delimma is the what to return of rt_alloc, and how to set parameter mem of rt_free
+	finally we choose return base address of memory allocated by rt_alloc, 
+	that means there are two types of memory that return by rt_malloc: M_rt_stub, and user structure that contains M_rt_stub
+
+	but addresses deliver to rt_free are all address of M_rt_stub, is inconsistent with return value of rt_alloc
+
+	it's not a good idea to return only address of M_rt_stub in rt_alloc, 
+	because user needs to shift the pointer to get base address of wrapper structure
+
+	it's also not a good idea to deliver only base address to rt_free, 
+	because system needs to add flag to distinguish what type of the memory is
+
+	so that's why our last choice is not symmetric. it's also the intrinsic defect of lightpool: 
+	can only support fixed size memory blocks, users need to deal many many things
+*/
+MBASE_API	void*		rt_alloc(M_sint32 size, M_rt_pool* pool);
+MBASE_API	void		rt_free(M_rt_stub* mem, M_rt_pool* pool);
+
 #ifdef __cplusplus
 }
 #endif

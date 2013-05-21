@@ -2152,7 +2152,7 @@ M_sint32	UT_err()
 }
 
 /*
-	随机生成有1-3三种字符，长度为1~10的串100个，构建radix tree，
+	随机生成有CHAR_NUM三种字符，长度为1~STRING_LEN的串STRING_NUM个，构建radix tree，
 	进行增删查改操作，然后释放tree，反复执行多次，看看是否有内存泄露
 */
 
@@ -2160,10 +2160,10 @@ M_sint32	UT_err()
 #undef LOOP_COUNT
 #endif
 
-#define LOOP_COUNT  1000000
-#define	STRING_NUM	2000
-#define STRING_LEN	500
-#define CHAR_NUM	50
+#define LOOP_COUNT  100
+#define	STRING_NUM	1000
+#define STRING_LEN	100
+#define CHAR_NUM	10
 
 typedef struct rt_ut_arg
 {
@@ -2195,11 +2195,11 @@ void reg_mem_free(void* mem)
 	memory_blocks--;
 }
 
-void rt_free(M_rt_stub* rt_stub, void* pool)
+void rt_stub_free(M_rt_stub* rt_stub, void* pool)
 {
 	void* mem = container_of(rt_stub, rt_ut_arg_t, rt_stub);
 	//printf("freeing %s(%d)\n", rt_stub->skey, rt_stub->skey_len);
-	if(M_rt_isvalid(rt_stub))
+	if(rt_valid(rt_stub))
 	{
 		free(mem);
 		reg_mem_free(mem);
@@ -2229,28 +2229,40 @@ M_sint32	UT_radix_tree()
 	M_rt_arg extra_arg;
 	FILE* fp = fopen("D:\\radixtree.txt", "w+");
 #if (FIX == 1)
-	char* s[20] = {
-		"001230414",
-		"3",
-		"332312342",
-		"2344",
-		"222",
-		"3422203",
-		"10313",
-		"123411333",
-		"04440",
-		"3102431242",
-		"04",
-		"103020323",
-		"2421102220",
-		"2421121133",
-		"24322102",
-		"0043412",
-		"2030411",
-		"303430200",
-		"04400334",
-		"243221133",
+	char* s[10] = {
+		"1",
+		"2",
+		"122",
+		"21122",
+		"210",
+		"0020001100",
+		"0102201102",
+		"1202",
+		"011",
+		"10",
 	};
+	//char* s[20] = {
+	//	"001230414",
+	//	"3",
+	//	"332312342",
+	//	"2344",
+	//	"222",
+	//	"3422203",
+	//	"10313",
+	//	"123411333",
+	//	"04440",
+	//	"3102431242",
+	//	"04",
+	//	"103020323",
+	//	"2421102220",
+	//	"2421121133",
+	//	"24322102",
+	//	"0043412",
+	//	"2030411",
+	//	"303430200",
+	//	"04400334",
+	//	"243221133",
+	//};
 	//char* s[10] = {
 	//	"1221",
 	//	"0",
@@ -2354,14 +2366,14 @@ M_sint32	UT_radix_tree()
 			nodes[j] = malloc(sizeof(rt_ut_arg_t));
 			reg_mem_alloc(nodes[j]);
 			nodes[j]->key = (M_sint8*)&(str[j]);
-			M_rt_init_node(&nodes[j]->rt_stub, nodes[j]->key, strlen(nodes[j]->key));
+			rt_init_node(&nodes[j]->rt_stub, nodes[j]->key, strlen(nodes[j]->key));
 			if(!extra_arg.dummy_node)
 			{
 				extra_arg.dummy_node = malloc(sizeof(M_rt_stub));
 				reg_mem_alloc(extra_arg.dummy_node);
 			}
 			
-			dup_tmp = M_rt_insert(&root, &nodes[j]->rt_stub, &extra_arg);
+			dup_tmp = rt_insert_node(&root, &nodes[j]->rt_stub, &extra_arg);
 			if(dup_tmp)
 			{
 				nodes[j]->rt_stub.parent = dup_nodes;
@@ -2401,7 +2413,7 @@ M_sint32	UT_radix_tree()
 			{
 				if(str[k][0])
 				{
-					search_result = M_rt_search(root, str[k], strlen(str[k]), RT_MODE_EXACT, &matched_len);
+					search_result = rt_search(root, str[k], strlen(str[k]), RT_MODE_EXACT, &matched_len);
 					UT_ASSERT(search_result);
 					printf("%s search successfully\n", str[k]);
 				}
@@ -2432,7 +2444,7 @@ M_sint32	UT_radix_tree()
 		{
 			if(str[k][0])
 			{
-				search_result = M_rt_search(root, str[k], strlen(str[k]), RT_MODE_EXACT, &matched_len);
+				search_result = rt_search(root, str[k], strlen(str[k]), RT_MODE_EXACT, &matched_len);
 				UT_ASSERT(search_result);
 			}
 		}
@@ -2443,7 +2455,7 @@ M_sint32	UT_radix_tree()
 		{
 			if(str[k][0])
 			{
-				search_result = M_rt_remove(&root, str[k], 0, &extra_arg);
+				search_result = rt_remove(&root, str[k], 0, &extra_arg);
 				UT_ASSERT(search_result);
 				
 				//printf("%s(%d) is freeing\n", search_result->skey, search_result->skey_len);
@@ -2482,7 +2494,7 @@ M_sint32	UT_radix_tree()
 				{
 					if(str[l][0])
 					{
-						search_result = M_rt_search(root, str[l], strlen(str[l]), RT_MODE_EXACT, &matched_len);
+						search_result = rt_search(root, str[l], strlen(str[l]), RT_MODE_EXACT, &matched_len);
 						UT_ASSERT(search_result);
 					}
 				}
@@ -2493,7 +2505,7 @@ M_sint32	UT_radix_tree()
 
 		
 
-		M_rt_freeall(&root, rt_free, NULL);
+		rt_free_all(&root, rt_stub_free, NULL);
 
 		if(extra_arg.dummy_node)
 		{
@@ -2518,6 +2530,221 @@ M_sint32	UT_radix_tree()
 	fclose(fp);
 	free(str);
 	free(nodes);
+	UT_CONCLUDE(ret);
+	return ret;
+}
+
+M_sint32	UT_radix_tree_pool()
+{
+	M_sint32 ret = 1;
+	M_sint32 i, j, k, l;
+	M_sint32 str_len;
+	M_sint8  base_ch = '0';
+	M_sint8	 (*str)[STRING_LEN+1] = malloc(sizeof(M_sint8)*STRING_NUM*(STRING_LEN+1));
+	rt_ut_arg_t**	nodes = malloc(sizeof(rt_ut_arg_t*)*STRING_NUM);
+	M_rt_stub* root = NULL;
+	M_rt_pool pool;
+	M_rt_stub* search_result = NULL;
+	M_rt_stub* dup_nodes = NULL;
+	M_rt_stub* dup_tmp;
+	M_sint32 matched_len = 0;
+	M_rt_arg extra_arg;
+	M_sint32 extra_alloc = 0;
+#if (FIX == 1)
+	char* s[10] = {
+		"1",
+		"2",
+		"122",
+		"21122",
+		"210",
+		"0020001100",
+		"0102201102",
+		"1202",
+		"011",
+		"10",
+	};
+#endif
+
+	FILE* fp = fopen("D:\\radixtree.txt", "w+");
+
+	rt_init_pool(&pool, (M_sintptr)offset_of(rt_ut_arg_t, rt_stub), 100);
+
+	srand(time(NULL));
+	extra_arg.dummy_node = extra_arg.extra_node = NULL;
+
+	for(i = 0; i<LOOP_COUNT; i++)
+	{
+		printf("%d ", i);
+		//构造字符串
+#if(FIX == 0)
+		fprintf(fp, "start...\n");
+#endif
+		memory_index = 0;
+		//dup_nodes = NULL;
+		for(j = 0; j<STRING_NUM; j++)
+		{
+#if (FIX == 0)
+			str_len = rand() % STRING_LEN + 1;
+			for(k=0; k<str_len; k++)
+				str[j][k] = rand() % CHAR_NUM + base_ch;
+				//str[j][k] = base_ch + j;
+			str[j][k] = 0;
+			fprintf(fp, "%s\n", str[j]);
+			fflush(fp);
+#else
+			sprintf(str[j], "%s", s[j]);
+#endif
+			nodes[j] = rt_alloc(sizeof(rt_ut_arg_t), &pool);
+			reg_mem_alloc(&nodes[j]->rt_stub);
+			nodes[j]->key = (M_sint8*)&(str[j]);
+			rt_init_node(&nodes[j]->rt_stub, nodes[j]->key, strlen(nodes[j]->key));
+			
+			if(extra_arg.extra_node)
+				reg_mem_free(extra_arg.extra_node);
+			if(!extra_arg.dummy_node)
+				extra_alloc = 1;
+			rt_process_arg(&pool, &extra_arg);
+			if(extra_alloc)
+				reg_mem_alloc(extra_arg.dummy_node);
+			extra_alloc = 0;
+			
+			dup_tmp = rt_insert_node(&root, &nodes[j]->rt_stub, &extra_arg);
+			if(dup_tmp)
+			{
+				nodes[j]->rt_stub.parent = dup_nodes;
+				dup_nodes = &nodes[j]->rt_stub;
+				str[j][0] = 0;
+			}
+
+			for(l=0; l<memory_index; l++)
+			{
+				if(memory_address[l] && memory_address[l] != extra_arg.dummy_node)
+				{
+					//printf("%d: %s(%d)\n", l, ((M_rt_stub*)memory_address[l])->skey, ((M_rt_stub*)memory_address[l])->skey_len);
+					UT_ASSERT(((M_rt_stub*)memory_address[l])->skey 
+						|| (!((M_rt_stub*)memory_address[l])->skey && !((M_rt_stub*)memory_address[l])->parent));
+				}
+			}
+		}
+
+		if(extra_arg.extra_node)
+			reg_mem_free(extra_arg.extra_node);
+		if(!extra_arg.dummy_node)
+			extra_alloc = 1;
+		rt_process_arg(&pool, &extra_arg);
+		if(extra_alloc)
+			reg_mem_alloc(extra_arg.dummy_node);
+
+		extra_alloc = 0;
+#if 0
+		for(k=0; k<STRING_NUM; k++)
+		{
+			if(str[k][0])
+			{
+				search_result = &(nodes[k]->rt_stub);
+				printf("node %s(%d)", search_result->skey, search_result->skey_len);
+				search_result = search_result->parent;
+				while(search_result)
+				{
+					printf(" -> %s(%d)", search_result->skey, search_result->skey_len);
+					search_result = search_result->parent;
+				}
+				printf("\n");
+			}
+		}
+		printf("\n");
+#endif
+
+		for(k=0; k<STRING_NUM; k++)
+		{
+			if(str[k][0])
+			{
+				search_result = rt_search(root, str[k], strlen(str[k]), RT_MODE_EXACT, &matched_len);
+				UT_ASSERT(search_result);
+			}
+		}
+		
+		j = rand() % STRING_NUM;
+		//j = STRING_NUM;
+		//j = 2;
+		fprintf(fp, "random j is %d\n", j);
+		for(k=0; k<j; k++)
+		{
+			for(l=0; l<memory_index; l++)
+			{
+				if(memory_address[l] && memory_address[l] != extra_arg.dummy_node)
+				{
+					//printf("%d: %s(%d)\n", l, ((M_rt_stub*)memory_address[l])->skey, ((M_rt_stub*)memory_address[l])->skey_len);
+					UT_ASSERT(((M_rt_stub*)memory_address[l])->skey 
+						|| (!((M_rt_stub*)memory_address[l])->skey && !((M_rt_stub*)memory_address[l])->parent));
+				}
+			}
+
+			if(str[k][0])
+			{
+				search_result = rt_remove(&root, str[k], 0, &extra_arg);
+				UT_ASSERT(search_result);
+				
+				//printf("%s(%d) is freeing\n", search_result->skey, search_result->skey_len);
+				reg_mem_free(search_result);
+				rt_free(search_result, &pool);
+				
+				if(extra_arg.extra_node)
+					reg_mem_free(extra_arg.extra_node);
+				if(!extra_arg.dummy_node)
+					extra_alloc = 1;
+				rt_process_arg(&pool, &extra_arg);
+				if(extra_alloc)
+					reg_mem_alloc(extra_arg.dummy_node);
+				extra_alloc = 0;
+
+#if 0
+				for(l=k+1; l<STRING_NUM; l++)
+				{
+					if(str[l][0])
+					{
+						search_result = &(nodes[l]->rt_stub);
+						printf("node %s(%d)", search_result->skey, search_result->skey_len);
+						search_result = search_result->parent;
+						while(search_result)
+						{
+							printf(" -> %s(%d)", search_result->skey, search_result->skey_len);
+							search_result = search_result->parent;
+						}
+						printf("\n");
+					}
+				}
+				printf("\n");
+#endif
+			}
+		}
+
+		//rt_free_all(&root, rt_stub_free, NULL);
+		rt_free_all_p(&root, &pool);
+
+		if(extra_arg.dummy_node)
+			reg_mem_free(extra_arg.dummy_node);
+		rt_free(extra_arg.dummy_node, &pool);
+		extra_arg.dummy_node = NULL;
+
+		while(dup_nodes)
+		{
+			dup_tmp = dup_nodes;
+			dup_nodes = dup_nodes->parent;
+			reg_mem_free(dup_tmp);
+			rt_free(dup_tmp, &pool);
+		}
+
+		//UT_ASSERT(memory_blocks == 0);
+		//printf("\n");
+
+	}
+	
+	fclose(fp);
+	rt_destroy_pool(&pool);
+	free(str);
+	free(nodes);
+	
 	UT_CONCLUDE(ret);
 	return ret;
 }

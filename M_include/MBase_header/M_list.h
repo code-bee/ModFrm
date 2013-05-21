@@ -38,6 +38,8 @@ MBASE_API INLINE void slist_insert(M_slist* head, M_slist* node);
 */
 MBASE_API INLINE M_slist* slist_remove(M_slist* head);
 
+MBASE_API INLINE void slist_travel(M_slist* head, traveller_t slist_traveller, void* param);
+
 
 /*
 	reverse single list, return new head

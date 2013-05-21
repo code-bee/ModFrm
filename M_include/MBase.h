@@ -38,6 +38,7 @@
 #include "MBase_header/M_os_misc.h"
 #include "MBase_header/M_utility.h"
 #include "MBase_header/M_list.h"
+#include "MBase_header/M_lightpool.h"
 #include "MBase_header/M_rbtree.h"
 #include "MBase_header/M_radix_tree.h"
 #include "MBase_header/M_atomic.h"

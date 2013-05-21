@@ -23,6 +23,7 @@ int main()
 
 	ret &= UT_bsthash();
 	ret &= UT_radix_tree();
+	ret &= UT_radix_tree_pool();
 	ret &= UT_tls();
 	ret &= UT_err();
 

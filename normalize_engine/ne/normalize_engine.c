@@ -35,6 +35,8 @@ config_t g_config[] =
 	//{"rule",	offset_of(ne_cfg_t, rule),		sizeof(cfg_rule_t),		g_rule_config,		sizeof(g_rule_config)/sizeof(config_set_t)},
 };
 
+static ne_cfg_t	s_cfg;
+
 int read_ne_config(char* filename, ne_cfg_t* cfgs)
 {
 	return read_config(filename, g_config, sizeof(g_config)/sizeof(config_t), cfgs);

@@ -146,6 +146,8 @@ typedef void	(* M_free_t)(void* memblock, void* pool);
 typedef void*	(* malloc_t)(M_size_t size);
 typedef void	(* free_t)(void* memblock);
 
+typedef void	(* traveller_t)(void* node, void* param);
+
 
 static INLINE	void	M_free(void* mem, void* pool)
 {

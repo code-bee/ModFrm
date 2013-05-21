@@ -174,7 +174,7 @@ M_bst_stub* bst_search_lt(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t
 		return NULL;
 }
 
-void bst_insert(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key)
+void bst_insert_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key)
 {
 	M_bst_stub* p = NULL;
 	M_bst_stub* t = *root;
@@ -199,7 +199,7 @@ void bst_insert(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t g
 	x->left = x->right = NULL;
 }
 
-M_sint32 bst_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key)
+M_sint32 bst_insearch_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key)
 {
 	M_bst_stub* p = NULL;
 	M_bst_stub* t = *root;
@@ -316,7 +316,7 @@ void bst_free_all(M_bst_stub** root,  M_free_t free_node, void* pool)
 	*root = NULL;
 }
 
-void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node)
+void bst_replace_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node)
 {
 	new_node->parent = old_node->parent;
 	new_node->left = old_node->left;
@@ -339,7 +339,7 @@ void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_n
 		*root = new_node;
 }
 
-void bst_travel(M_bst_stub* root, bst_traveller_t bst_traveller, void* param)
+void bst_travel(M_bst_stub* root, traveller_t bst_traveller, void* param)
 {
 	M_bst_stub* tmp;
 
@@ -430,12 +430,12 @@ static INLINE void _rbt_set_color(M_bst_stub* x, M_sint32 color, set_rbcolor_t s
 		set_rbcolor(x, color);
 }
 
-void rbt_insert(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key, 
+void rbt_insert_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key, 
 				get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
 {
 	M_bst_stub *y, *z;
 
-	bst_insert((M_bst_stub**)root, (M_bst_stub*)x, cmp_key, get_key);
+	bst_insert_node((M_bst_stub**)root, (M_bst_stub*)x, cmp_key, get_key);
 	set_rbcolor(x, RB_RED);
 	y = x->parent;
 
@@ -632,12 +632,12 @@ M_bst_stub* rbt_remove(M_bst_stub** root, void* key, cmp_key_t cmp_key, get_key_
 	return x;
 }
 
-M_sint32 rbt_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key,
+M_sint32 rbt_insearch_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key,
 					  get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
 {
 	M_bst_stub *y, *z;
 
-	if(!bst_insearch((M_bst_stub**)root, (M_bst_stub*)x, cmp_key, get_key))
+	if(!bst_insearch_node((M_bst_stub**)root, (M_bst_stub*)x, cmp_key, get_key))
 		return 0;
 
 	set_rbcolor(x, RB_RED);
@@ -686,8 +686,8 @@ M_sint32 rbt_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_k
 	return 1;
 }
 
-void replace_rbt_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
+void rbt_replace_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor)
 {
-	replace_bst_node(root, old_node, new_node);
+	bst_replace_node(root, old_node, new_node);
 	set_rbcolor(new_node, get_rbcolor(old_node));
 }

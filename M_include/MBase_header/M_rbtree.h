@@ -45,11 +45,11 @@ MBASE_API M_bst_stub* bst_search_gt(M_bst_stub* root, void* key, cmp_key_t cmp_k
 MBASE_API M_bst_stub* bst_search_lt(M_bst_stub* root, void* key, cmp_key_t cmp_key, get_key_t get_key);
 
 /*
-	bst_insert: always success
-	bst_insearch: success if same key is not in tree yet, return 1, otherwise return 0
+	bst_insert_node: always success
+	bst_insearch_node: success if same key is not in tree yet, return 1, otherwise return 0
 */
-MBASE_API void bst_insert(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key);
-MBASE_API M_sint32 bst_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key);
+MBASE_API void bst_insert_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key);
+MBASE_API M_sint32 bst_insearch_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key);
 
 //return: the node removed from binary searching tree. NULL means remove fail
 MBASE_API M_bst_stub* bst_remove(M_bst_stub** root, void* key, cmp_key_t cmp_key, get_key_t get_key);
@@ -61,7 +61,7 @@ MBASE_API void bst_free_all(M_bst_stub** root, M_free_t free_node, void* pool);
 	only pointers are revised, key is not considered here
 	if old_node is just root, tree root is necessary to be revised
 */
-MBASE_API void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node);
+MBASE_API void bst_replace_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node);
 
 /*
 	for radix tree use only, 
@@ -69,10 +69,12 @@ MBASE_API void replace_bst_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_s
 */
 MBASE_API M_sint32 bst_get_node_count_for_rt_tree(M_bst_stub* root);
 
+/*
+	for general use. actually, it's implementation is based on bst_travel
+*/
 MBASE_API M_sint32 bst_get_node_count(M_bst_stub* root);
 
-typedef void (*bst_traveller_t)(M_bst_stub* t, void* param);
-MBASE_API void bst_travel(M_bst_stub* root, bst_traveller_t bst_traveller, void* param);
+MBASE_API void bst_travel(M_bst_stub* root, traveller_t bst_traveller, void* param);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -81,10 +83,10 @@ MBASE_API void bst_travel(M_bst_stub* root, bst_traveller_t bst_traveller, void*
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-MBASE_API void rbt_insert(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key, 
+MBASE_API void rbt_insert_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key, 
 						  get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor);
 
-MBASE_API M_sint32 rbt_insearch(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key,
+MBASE_API M_sint32 rbt_insearch_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key,
 								get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor);
 
 MBASE_API M_bst_stub* rbt_remove(M_bst_stub** root, void* key, cmp_key_t cmp_key, get_key_t get_key, 
@@ -94,7 +96,7 @@ MBASE_API void rbt_remove_node(M_bst_stub** root, M_bst_stub* x, get_rbcolor_t g
 /*
 	pointers and color are revised, key is not considered here
 */
-MBASE_API void replace_rbt_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor);
+MBASE_API void rbt_replace_node(M_bst_stub** root, M_bst_stub* old_node, M_bst_stub* new_node, get_rbcolor_t get_rbcolor, set_rbcolor_t set_rbcolor);
 
 
 #ifdef __cplusplus
