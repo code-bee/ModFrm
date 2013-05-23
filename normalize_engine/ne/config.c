@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #ifndef WIN32
@@ -13,19 +13,19 @@
 //char* rtrim(char* str);
 //char* trim(char* str);
 
-//Ç¿ÖÆ×ª»»µÚi¸öÈ«¾ÖÅäÖÃ³ÉÔ±Îªuser_config_set_tÀàĞÍ
+//å¼ºåˆ¶è½¬æ¢ç¬¬iä¸ªå…¨å±€é…ç½®æˆå‘˜ä¸ºuser_config_set_tç±»å‹
 #define get_set_cfg(cfg, i)						((user_config_set_t*)((char*)(cfg) + config_array[i].offset))
 
 /*
-	Á½´Î±éÀú£¬µÚÒ»´Î»ñµÃ¸÷¸ösetµÄÊıÄ¿£¬·ÖÅä¿Õ¼ä
-	µÚ¶ş´Î²ÅÊÇÕæÕıµÄ¶ÁÈëÅäÖÃ
+	ä¸¤æ¬¡éå†ï¼Œç¬¬ä¸€æ¬¡è·å¾—å„ä¸ªsetçš„æ•°ç›®ï¼Œåˆ†é…ç©ºé—´
+	ç¬¬äºŒæ¬¡æ‰æ˜¯çœŸæ­£çš„è¯»å…¥é…ç½®
 
-	ÓÉÓÚĞèÒª·ÖÅä¿Õ¼ä£¬ËùÒÔ±ØĞëÓĞrelease_config·½·¨
+	ç”±äºéœ€è¦åˆ†é…ç©ºé—´ï¼Œæ‰€ä»¥å¿…é¡»æœ‰release_configæ–¹æ³•
 */
 int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg)
 {
 	FILE *fp = NULL;
-	char buf[LINE_SIZE]; //»º³åÇøÊı×é
+	char buf[LINE_SIZE]; //ç¼“å†²åŒºæ•°ç»„
 	//char buf_[LINE_SIZE];
 	char *pitem = NULL;
 	char *pvalue = NULL;
@@ -43,10 +43,10 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 		return -1;
 	}
 
-	//×¢Òâ£ºÔÚ´ËÖ®Ç°±ØĞëÖ´ĞĞrelease_config£¬·ñÔò»áÄÚ´æĞ¹Â¶£¡£¡£¡
+	//æ³¨æ„ï¼šåœ¨æ­¤ä¹‹å‰å¿…é¡»æ‰§è¡Œrelease_configï¼Œå¦åˆ™ä¼šå†…å­˜æ³„éœ²ï¼ï¼ï¼
 	memset(cfg, 0, sizeof(user_config_set_t)*nr_config_array);
 
-	//»ñÈ¡Ã¿¸öconfig setµÄÊıÄ¿£¬±£´æÔÚcfg->user_config_set_t->nr_setsÖĞ
+	//è·å–æ¯ä¸ªconfig setçš„æ•°ç›®ï¼Œä¿å­˜åœ¨cfg->user_config_set_t->nr_setsä¸­
 	while(fgets(buf,LINE_SIZE,fp) != NULL)
 	{
 		++line_nr;
@@ -77,7 +77,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 		continue;
 	}
 
-	//·ÖÅäÄÚ´æ
+	//åˆ†é…å†…å­˜
 	for(i=0; i<nr_config_array; ++i)
 	{
 		if( !(get_set_cfg(cfg, i)->cfgs = malloc(config_array[i].set_size * get_set_cfg(cfg, i)->nr_sets)) )
@@ -88,11 +88,11 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			return -1;
 		}
 		
-		//ÖÃ0µÄÄ¿µÄÊÇÎªÁË·½±ãºóÃæ¶ÁÅäÖÃÊ±¸ú×ÙÅäÖÃÏîµÄÎ»ÖÃ
+		//ç½®0çš„ç›®çš„æ˜¯ä¸ºäº†æ–¹ä¾¿åé¢è¯»é…ç½®æ—¶è·Ÿè¸ªé…ç½®é¡¹çš„ä½ç½®
 		get_set_cfg(cfg, i)->nr_sets = 0;
 	}
 
-	//Öğ¸ö¶ÁÈë¸÷×éÅäÖÃ
+	//é€ä¸ªè¯»å…¥å„ç»„é…ç½®
 	line_nr = 0;
 	rewind(fp);
 	//fseek(fp, 0, SEEK_SET);
@@ -129,7 +129,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			if(i == nr_config_array)
 				printf("unknown config set %s at line %d, %s may run error!\n", pitem, line_nr, __FUNCTION__);
 			
-			//ÏÂÃæµÄcontinue¿ÉÒÔÊ¡ÂÔ
+			//ä¸‹é¢çš„continueå¯ä»¥çœç•¥
 			//continue;
 		}
 		else
@@ -146,7 +146,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			pitem = rtrim(pitem);
 			pvalue = trim(pvalue);
 
-			if(pvalue[0] == '"')	//×Ö·û´®
+			if(pvalue[0] == '"')	//å­—ç¬¦ä¸²
 			{
 				tmp = ++pvalue;
 				while(*tmp)
@@ -174,10 +174,10 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			}
 			else
 			{
-				//È¥µô#Ö®ºóµÄ²¿·Ö
+				//å»æ‰#ä¹‹åçš„éƒ¨åˆ†
 				//if(! (tmp = strchr(pvalue, '#')) )
 				//	tmp = strchr(pvalue, '\n');
-				//if(tmp)	// ÒÔ·ÀÍòÒ»£¬ÅÂ×îºóÃ»ÓĞ»»ĞĞ£¬²»È»Õâ¸öÅĞ¶Ï¿ÉÒÔ²»Òª
+				//if(tmp)	// ä»¥é˜²ä¸‡ä¸€ï¼Œæ€•æœ€åæ²¡æœ‰æ¢è¡Œï¼Œä¸ç„¶è¿™ä¸ªåˆ¤æ–­å¯ä»¥ä¸è¦
 				//	*tmp = 0;
 				if( (tmp = my_strchr(pvalue, "#\n")) )
 					*tmp = 0;
@@ -207,7 +207,7 @@ void	release_config(config_t* config_array, int nr_config_array, void* cfg)
 	int i = 0;
 	user_config_set_t* set_cfg;
 
-	//·ÖÅäÄÚ´æ
+	//åˆ†é…å†…å­˜
 	for(i=0; i<nr_config_array; ++i)
 	{
 		set_cfg = get_set_cfg(cfg, i);

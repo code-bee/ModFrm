@@ -1,4 +1,4 @@
-#ifndef __CONFIG_H__
+ï»¿#ifndef __CONFIG_H__
 #define __CONFIG_H__
 
 #include <stdio.h>
@@ -6,11 +6,11 @@
 #include <string.h>
 
 /*
-	Ö§³ÖsetµÄconfigÎÄ¼ş
+	æ”¯æŒsetçš„configæ–‡ä»¶
 
-	·ÖÁ½²¿·Ö£¬Ò»²¿·ÖÍ³¼Æset£¬·ÖÅä¿Õ¼ä£¬ÁíÒ»²¿·Ö¶ÁsetµÄÄÚÈİ
+	åˆ†ä¸¤éƒ¨åˆ†ï¼Œä¸€éƒ¨åˆ†ç»Ÿè®¡setï¼Œåˆ†é…ç©ºé—´ï¼Œå¦ä¸€éƒ¨åˆ†è¯»setçš„å†…å®¹
 	
-	ÓÉÓÚsetµÄÊıÄ¿²»È·¶¨£¬ËùÒÔÒª¶¯Ì¬·ÖÅäsetµÄÄÚ´æ£¬setµÄÄÚÈİ»¹ÊÇ¾²Ì¬·ÖÅä
+	ç”±äºsetçš„æ•°ç›®ä¸ç¡®å®šï¼Œæ‰€ä»¥è¦åŠ¨æ€åˆ†é…setçš„å†…å­˜ï¼Œsetçš„å†…å®¹è¿˜æ˜¯é™æ€åˆ†é…
 */
 
 #ifndef offset_of
@@ -25,7 +25,7 @@ typedef void (*config_setter_t)(int value, void* write_address);
 
 
 /*
-	Ò»¸öconfig setµÄÄÚ²¿ĞÅÏ¢
+	ä¸€ä¸ªconfig setçš„å†…éƒ¨ä¿¡æ¯
 */
 typedef struct st_config_set
 {
@@ -35,12 +35,12 @@ typedef struct st_config_set
 } config_set_t;
 
 /*
-	Ò»¸öconfigÎÄ¼ş°üº¬µÄconfig setµÄÒ»ÌõĞÅÏ¢
-	set_name:		setµÄÃû×Ö£¬¼´[]ÖĞ°üÀ¨µÄÄÚÈİ
-	offset£º		setµÄÄÚÈİÔÚÓÃ»§ÅäÖÃµÄcfg¶ÔÏóÖĞµÄÆ«ÒÆÁ¿£¬ÊÂÊµÉÏÊÇuser_config_set_tµÄÆ«ÒÆÁ¿
-	set_size:		ÊÂÊµÉÏÊÇuser_config_set_t->cfgsµÄ´óĞ¡
-	config_item_arr:¶ÔÓ¦µÄÅäÖÃÊı×é
-	nr_items:		Õâ¸ösetÖĞÅäÖÃÏîµÄÊıÄ¿
+	ä¸€ä¸ªconfigæ–‡ä»¶åŒ…å«çš„config setçš„ä¸€æ¡ä¿¡æ¯
+	set_name:		setçš„åå­—ï¼Œå³[]ä¸­åŒ…æ‹¬çš„å†…å®¹
+	offsetï¼š		setçš„å†…å®¹åœ¨ç”¨æˆ·é…ç½®çš„cfgå¯¹è±¡ä¸­çš„åç§»é‡ï¼Œäº‹å®ä¸Šæ˜¯user_config_set_tçš„åç§»é‡
+	set_size:		äº‹å®ä¸Šæ˜¯user_config_set_t->cfgsçš„å¤§å°
+	config_item_arr:å¯¹åº”çš„é…ç½®æ•°ç»„
+	nr_items:		è¿™ä¸ªsetä¸­é…ç½®é¡¹çš„æ•°ç›®
 */
 typedef struct st_config
 {
@@ -52,9 +52,9 @@ typedef struct st_config
 } config_t;
 
 /*
-	¸øÓÃ»§ÓÃ£¬ÓÃ»§¶¨Òåconfig setµÄÅäÖÃ½á¹¹Ê±Ğè¼Ì³Ğ¸Ã½á¹¹
-	cfgs£ºÖ¸ÏòÓÃ»§¶¨ÒåµÄconfig setÅäÖÃ½á¹¹£¬ÊÇ¸öÊı×é
-	nr_sets£º¸ÃÀàconfig setÅäÖÃµÄÊıÄ¿
+	ç»™ç”¨æˆ·ç”¨ï¼Œç”¨æˆ·å®šä¹‰config setçš„é…ç½®ç»“æ„æ—¶éœ€ç»§æ‰¿è¯¥ç»“æ„
+	cfgsï¼šæŒ‡å‘ç”¨æˆ·å®šä¹‰çš„config seté…ç½®ç»“æ„ï¼Œæ˜¯ä¸ªæ•°ç»„
+	nr_setsï¼šè¯¥ç±»config seté…ç½®çš„æ•°ç›®
 */
 
 #define	user_config_set_DECLARE(type)\
@@ -111,7 +111,7 @@ static __inline int long_reader(char *in_string,void *out_value)
 }
 
 /*
-	ÓÃdelim´®ÖĞµÄ×Ö·û·Ö¸î
+	ç”¨delimä¸²ä¸­çš„å­—ç¬¦åˆ†å‰²
 */
 static __inline char* my_strtok(char* str, char* delim, char* buf)
 {
@@ -157,7 +157,7 @@ static __inline char* my_strtok(char* str, char* delim, char* buf)
 }
 
 /*
-	Ò»´Î±éÀú£¬ÕÒ³ödelimÖĞµÚÒ»¸ö³öÏÖµÄÈÎºÎ×Ö·û
+	ä¸€æ¬¡éå†ï¼Œæ‰¾å‡ºdelimä¸­ç¬¬ä¸€ä¸ªå‡ºç°çš„ä»»ä½•å­—ç¬¦
 */
 static __inline char* my_strchr(char* str, char* delim)
 {
@@ -178,7 +178,7 @@ static __inline char* my_strchr(char* str, char* delim)
 }
 
 /*
-	²éÕÒdelim´®£¬ÓÃdelim´®·Ö¸î
+	æŸ¥æ‰¾delimä¸²ï¼Œç”¨delimä¸²åˆ†å‰²
 */
 static __inline char* my_stringtok(char* str, char* delim, char* buf)
 {

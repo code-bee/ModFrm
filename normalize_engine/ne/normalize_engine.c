@@ -1,4 +1,4 @@
-
+﻿
 #include "normalize_engine.h"
 
 config_set_t g_common_config[] = 
