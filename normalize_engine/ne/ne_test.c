@@ -3,14 +3,15 @@
 #include "normalize_engine.h"
 
 
-ne_cfg_t	g_cfg;
+//ne_cfg_t	g_cfg;
 
 int main(int argc, char* argv[])
 {
-	read_ne_config("..\\normalize_engine.cfg", &g_cfg);
+	ne_cfg_t cfg;
+	read_ne_config("..\\normalize_engine.cfg", &cfg);
 	//read_ne_config("..\\a.txt");
-	print_cfg(&g_cfg);
-	release_ne_config(&g_cfg);
+	print_cfg(&cfg);
+	release_ne_config(&cfg);
 	return 0;
 }
 

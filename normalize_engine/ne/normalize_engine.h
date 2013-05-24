@@ -8,6 +8,7 @@
 #include "MBase.h"
 
 #include "config.h"
+#include "acsmx2.h"
 
 /*
 	整体流程
@@ -103,30 +104,55 @@ void print_cfg(ne_cfg_t* cfgs);
 	根据分隔符位置、类型信息对输入串进行组、段划分。输入串可以是match_rule，也可以是待匹配串。
 */
 struct st_rule;
+struct st_pattern;
 
-typedef struct st_group
-{
-	M_slist			list_stub;		//used in rule_t. all groups are in order
-	//struct st_rule*	rule;
-	cfg_group_t*	cfg_grp;
-} group_t;
+//typedef struct st_group
+//{
+//	M_slist			list_stub;		//used in rule_t. all groups are in order
+//	//struct st_rule*	rule;
+//	cfg_group_t*	cfg_grp;
+//} group_t;
+
+typedef cfg_group_t	group_t;
+
+/*
+	owner_stub lays in string pattern, delimiter, and wildcard
+*/
+#define owner_stub_DECLARE\
+	/* list of it's owner. for string pattern, it is used by rule_t; for delimiter, it is used by delim_head */\
+	/* for wildcard, it is used by rule_t, together with string pattern to build a completed match rule */\
+	M_slist		owner_stub;\
+	/* indicate current constraint is of string pattern or delimiter pattern, or wildcard */\
+	M_sint8		self_type
+
+/*
+	pattern_stub lays in constraint of string pattern and delimiter
+*/
+#define pattern_stub_DECLARE\
+	/* list of constraints of string pattern or delimiters with same string key, used in pattern_t */\
+	M_slist		pat_stub;\
+	/* points to current pattern */\
+	struct st_pattern*	pat;\
+	/* which group it belongs to */\
+	group_t*	grp;\
+	owner_stub_DECLARE
 
 typedef struct st_cons_str_pat
 {
-	M_slist		list_stub;		//list of constraint of string pattern with same string key, used in pattern_t
-	M_slist		rule_stub;		//list of constraint, 
-	group_t*	grp;			//from grp, rule can be obtained
-	M_sint8		pos_type;		//equal or greater than
-	M_sint8		boundary_type;	//boundary seg is completed or not
+	pattern_stub_DECLARE;
+	M_sint8		string_type;	//boundary seg is completed or not, pos is equal or greater than
 	M_sint8		start_pos;
 	M_sint8		end_pos;		//both are seg positions
+	struct st_rule*	rule;		//which rule it belongs to
 } cons_str_pat_t;
 
+/*
+	分隔符可以完全相同，但不允许出现包含，或前后缀关系
+*/
 typedef struct st_cons_delim_pat
 {
-	M_slist		list_stub;		//used in pattern_t
-	group_t*	grp;
-	M_sint32	type;			//group delim(start/end), or seg delim
+	pattern_stub_DECLARE;
+	M_sint16	delim_type;		//group delim(start/end), or seg delim
 } cons_delim_pat_t;
 
 typedef struct st_pattern
@@ -140,22 +166,52 @@ typedef struct st_pattern
 
 typedef struct st_wildcard
 {
-	M_slist			list_stub;	//used in rule_t, 
-	M_sint16		type;
-	M_sint16		no;
-	cons_str_pat_t*	ante_cons;
-	cons_str_pat_t*	post_cons;
+	owner_stub_DECLARE;
+	M_sint8		type;	//wildcard of seg or char	
+	M_sint16	no;		//0 if it is not numbered
+	M_slist*	ante;	//anterior element in match_rule, could be cons of string pattern, or another wildcard
+	M_slist*	post;	//posterior element in match_rule, could be cons of string pattern, or another wildcard
 } wildcart_t;
 
+/*
+	wrapper of ac mata, besides ac handle, callbacks for ac are also integrated
+*/
 typedef struct st_acmata
-{} acmata_t;
+{
+	ACSM_STRUCT2*	ac_handle;
+	//callbacks...
+} acmata_t;
 
 typedef struct st_rule
 {
-	//M_slist		grp_list;
-	M_slist		pattern_list;		//wildcard list
-	M_slist		normal_list;	//
+	M_slist		match_list;		// list of wildcard and constraints of string pattern of match_rule
+	M_slist		normal_list;	// list of wildcard and string pattern of normal rule
 } rule_t;
+
+/*
+	top structure, combine all data together
+*/
+typedef struct st_ne_model
+{
+	acmata_t	acmata;			//ac mata
+	M_rt_stub*	pat_tree;		//radix tree for patterns
+	M_slist		delim_head;		//delimiter list
+	rule_t*		rules;			//rule array
+	M_sint32	nr_rules;		//number of rules
+} ne_model_t;
+
+/*
+	a helper structure for recording position of delimiters,
+	is used to parse input string
+*/
+typedef struct st_delim_pos
+{
+
+} delim_pos_t;
+
+M_sint32	parse_string(M_sint8* str, M_sint32 str_len, delim_pos_t* delim_pos);
+
+M_sint32	build_ne_model(ne_model_t* model, ne_cfg_t* cfg);
 
 /*
 	3. 待处理串匹配，归一化阶段
@@ -172,6 +228,26 @@ typedef struct st_rule
 	   如果还不能选择，不做处理
 	6. 找到合适的规则后，提取通配内容，生成归一化串
 */
+
+/*
+	to wildcard element, at beginning, both str and str_len are 0
+	after processing, they are replaced by pointers to match_string,
+	so that a normalized string could be constructed
+*/
+typedef struct st_rule_ele
+{
+	M_slist		list_stub;
+	M_sint8*	str;
+	M_sint16	str_len;
+	M_sint16	type;		// normal string element, or wildcard element
+} rule_ele_t;
+
+typedef struct st_match_string
+{
+	M_sint8*	str;
+	M_sint32	str_len;
+	M_slist		ele_list;
+} match_string_t;
 
 
 #if 0

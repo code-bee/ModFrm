@@ -120,10 +120,8 @@ M_bst_stub* bst_search(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t ge
 		cmp = cmp_key(key, get_key(t));
 		if(!cmp)
 			return t;
-		else if(cmp < 0)
-			t = t->left;
 		else
-			t = t->right;
+			t = cmp < 0 ? t->left : t->right;
 	}
 	return NULL;
 }
@@ -139,10 +137,8 @@ M_bst_stub* bst_search_gt(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t
 		s = t;
 		if(!cmp)
 			return t;
-		else if(cmp < 0)
-			t = t->left;
 		else
-			t = t->right;
+			t = cmp < 0 ? t->left : t->right;
 	}
 
 	if(s)
@@ -162,10 +158,8 @@ M_bst_stub* bst_search_lt(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t
 		s = t;
 		if(!cmp)
 			return t;
-		else if(cmp < 0)
-			t = t->left;
 		else
-			t = t->right;
+			t = cmp < 0 ? t->left : t->right;
 	}
 
 	if(s)
