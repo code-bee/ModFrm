@@ -190,6 +190,7 @@ typedef struct st_rule
 
 /*
 	top structure, combine all data together
+	ne_model_t is a read only structure, could be shared among threads
 */
 typedef struct st_ne_model
 {
@@ -201,15 +202,55 @@ typedef struct st_ne_model
 } ne_model_t;
 
 /*
+	M_lightpool is not thread safe, so thread_ne_t is introduced to support multithread scenarios
+*/
+typedef struct st_thread_ne
+{
+	ne_model_t*	model;
+	M_lightpool	delim_pool;
+} thread_ne_t;
+
+/*
 	a helper structure for recording position of delimiters,
 	is used to parse input string
 */
 typedef struct st_delim_pos
 {
-
+	M_slist				list_stub;		// list stub used in delim_param_t
+	cons_delim_pat_t*	delim;			// what the delim is
+	M_sint16			pos;			// where it occurs in input string
+	M_sint16			type;			// final type of delim after input string is parsed(parse_string is called)
 } delim_pos_t;
 
-M_sint32	parse_string(M_sint8* str, M_sint32 str_len, delim_pos_t* delim_pos);
+typedef struct st_delim_param
+{
+	M_slist			list_head;
+} delim_param_t;
+
+/*
+	一组用于解析输入串的函数，目的在于将AC状态机匹配得到的各种delim组织起来，
+	并利用其进行输入串分组、分段。当输入串解析完成后，基本上这个param就可以释放了。
+
+	在这里用lightpool管理delim_pos_t
+*/
+M_sint32	delim_param_init(delim_param_t* param);
+M_sint32	delim_param_insert(delim_param_t* param, cons_delim_pat_t* delim, thread_ne_t* t_model);
+M_sint32	delim_param_destroy(delim_param_t* param, thread_ne_t* t_model);
+
+/*
+	解析得到的结果仍然放在param中，type域将会有有效数据。
+	解析中认为非法的delim将会被删除
+*/
+M_sint32	parse_string(M_sint8* str, M_sint32 str_len, delim_param_t* param);
+
+
+M_sint32	ne_model_init(ne_model_t* model);
+M_sint32	t_model_init(thread_ne_t* t_model);
+
+M_sint32	str_pat_insert(M_sint8* str, M_sint32 str_len, thread_ne_t* t_model);
+M_sint32	delim_pat_insert(M_sint8* delim, M_sint32 delim_len, thread_ne_t* model);
+M_sint32	rule_insert();
+M_sint32	build_acmata(ne_model_t* model);
 
 M_sint32	build_ne_model(ne_model_t* model, ne_cfg_t* cfg);
 
