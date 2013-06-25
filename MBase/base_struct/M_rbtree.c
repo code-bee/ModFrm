@@ -379,7 +379,7 @@ M_sint32 bst_get_node_count_for_rt_tree(M_bst_stub* root)
 	M_sint32 count = 0;
 	M_bst_stub* tmp;
 
-	while(root && count < 3)
+	while(root && count < 2)
 	{
 		++count;
 		if(root->left)

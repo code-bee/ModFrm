@@ -46,7 +46,13 @@ MBASE_API INLINE void slist_travel(M_slist* head, traveller_t slist_traveller, v
 
 	BE AWARE: list here is a normal list, end with NULL pointer, not a loop list
 */
-MBASE_API INLINE M_slist* slist_reverse(M_slist* head);
+MBASE_API INLINE M_slist* slist_reverse_NULL(M_slist* head);
+
+/*
+	reverse single loop list, head is not changed
+*/
+MBASE_API INLINE void slist_reverse(M_slist* head);
+
 
 /*
 	count nodes when reversing list
@@ -94,10 +100,9 @@ MBASE_API INLINE void dlist_insert(M_dlist* head, M_dlist* node);
 */
 MBASE_API INLINE void dlist_append(M_dlist* head, M_dlist* node);
 /*
-	remove node just after head, "head" here is real head of the link list
-	return removed node
+	remove arbitary node in double list, of course node must not be head
 */
-MBASE_API INLINE M_dlist* dlist_remove(M_dlist* head);
+MBASE_API INLINE M_dlist* dlist_remove(M_dlist* head, M_dlist* node);
 /*
 	return 1 if dlist is empty, 0 otherwise
 */

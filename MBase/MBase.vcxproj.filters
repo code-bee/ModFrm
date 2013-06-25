@@ -66,7 +66,13 @@
     <ClCompile Include="base_struct\M_radix_tree.c">
       <Filter>base_struct</Filter>
     </ClCompile>
-    <ClCompile Include="base_struct\M_lightpool.c">
+    <ClCompile Include="base_struct\M_stackpool.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_poolinf.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
+    <ClCompile Include="base_struct\M_radix_mata.c">
       <Filter>base_struct</Filter>
     </ClCompile>
   </ItemGroup>
@@ -125,7 +131,13 @@
     <ClInclude Include="..\M_include\MBase_header\M_radix_tree.h">
       <Filter>base_struct</Filter>
     </ClInclude>
-    <ClInclude Include="..\M_include\MBase_header\M_lightpool.h">
+    <ClInclude Include="..\M_include\MBase_header\M_stackpool.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_poolinf.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_radix_mata.h">
       <Filter>base_struct</Filter>
     </ClInclude>
   </ItemGroup>

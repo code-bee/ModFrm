@@ -1661,7 +1661,7 @@ ACSM_STRUCT2 * acsmNew2 (void (*userfree)(void *p),
 
     /* Some defaults */
     p->acsmFSA               = FSA_DFA;
-    p->acsmFormat            = ACF_FULL;//ACF_BANDED;
+    p->acsmFormat            = ACF_BANDED;//ACF_FULL;//ACF_BANDED;		//ACF_FULL会导致重复命中。
     p->acsmAlphabetSize      = 256;
     p->acsmSparseMaxRowNodes = 256;
     p->acsmSparseMaxZcnt     = 10;

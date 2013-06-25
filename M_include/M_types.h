@@ -25,6 +25,8 @@
 
 		__M_CFG_COUNT_LQUEUE:		count series macro, if defined, provides node counts in M_lqueue
 
+		__M_CFG_POOL_LEAK:			activate a simple memory leak detector by M_poolinf
+
 	inherited from MS Windows:
 		_DEBUG
 		WIN32
@@ -54,6 +56,7 @@ extern "C" {
 #endif
 
 #define	__M_CFG_SMP
+#define __M_CFG_POOL_LEAK
 
 typedef unsigned char	M_uint8;
 typedef signed char		M_sint8;
@@ -148,6 +151,11 @@ typedef void	(* free_t)(void* memblock);
 
 typedef void	(* traveller_t)(void* node, void* param);
 
+static INLINE	void*	M_malloc(M_size_t size, void* pool)
+{
+	pool = pool;
+	return malloc(size);
+}
 
 static INLINE	void	M_free(void* mem, void* pool)
 {

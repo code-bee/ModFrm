@@ -75,7 +75,7 @@ INLINE M_slist* lqueue_remove(M_lqueue* lq)
 	if(!lq->tail)
 	{
 		atomic_xchg((M_atomic*)(&(lq->head)), (M_sintptr*)&(lq->tail));	
-		lq->tail = slist_reverse(lq->tail);
+		lq->tail = slist_reverse_NULL(lq->tail);
 	}
 #else
 
@@ -94,7 +94,7 @@ INLINE M_slist* lqueue_remove(M_lqueue* lq)
 	pthread_mutex_unlock(&lq->mutex);
 
 	if( ret == (void*)1 )
-		lq->tail = slist_reverse(lq->tail);
+		lq->tail = slist_reverse_NULL(lq->tail);
 
 #endif
 
@@ -129,7 +129,7 @@ INLINE M_slist*	lqueue_remove_list(M_lqueue* lq)
 #endif
 
 #else
-		lq->tail = slist_reverse(lq->tail);
+		lq->tail = slist_reverse_NULL(lq->tail);
 #endif
 	}
 
@@ -153,7 +153,7 @@ INLINE M_slist* lqueue_remove_list_bycount(M_lqueue* lq, M_sint32* count)
 	if(!lq->tail)
 	{
 		atomic_xchg((M_atomic*)(&(lq->head)), (M_sintptr*)&(lq->tail));	
-		lq->tail = slist_reverse(lq->tail);
+		lq->tail = slist_reverse_NULL(lq->tail);
 	}
 #else
 
@@ -168,7 +168,7 @@ INLINE M_slist* lqueue_remove_list_bycount(M_lqueue* lq, M_sint32* count)
 	pthread_mutex_unlock(&lq->mutex);
 
 	if( i == 1)
-		lq->tail = slist_reverse(lq->tail);
+		lq->tail = slist_reverse_NULL(lq->tail);
 
 #endif
 

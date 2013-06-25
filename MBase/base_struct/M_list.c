@@ -56,7 +56,7 @@ INLINE void slist_travel(M_slist* head, traveller_t slist_traveller, void* param
 /*
 	reverse single list, return new head
 */
-INLINE M_slist* slist_reverse(M_slist* head)
+INLINE M_slist* slist_reverse_NULL(M_slist* head)
 {
 	M_slist *cursor, *tmp;
 
@@ -74,6 +74,21 @@ INLINE M_slist* slist_reverse(M_slist* head)
 	}
 
 	return head;
+}
+
+INLINE void slist_reverse(M_slist* head)
+{
+	M_slist *cursor = head->next, *tmp1, *tmp2 = head;
+	while(cursor != head)
+	{
+		tmp1 = cursor->next;
+		cursor->next = tmp2;
+		tmp2 = cursor;
+		cursor = tmp1;
+	}
+
+	//acturally, cursor is head now
+	cursor->next = tmp2;
 }
 
 INLINE M_slist* slist_reverse_count(M_slist* head, M_sint32* count)
@@ -137,19 +152,17 @@ INLINE void dlist_append(M_dlist* head, M_dlist* node)
 /*
 	remove node just after head
 */
-INLINE M_dlist* dlist_remove(M_dlist* head)
+INLINE M_dlist* dlist_remove(M_dlist* head, M_dlist* node)
 {
-	M_dlist* remv = head->next;
 
-	if(remv != head)
+	if(node != head)
 	{
-		head->next = remv->next;
-		remv->next->prev = head;
+		node->next->prev = node->prev;
+		node->prev->next = node->next;
+		return node;
 	}
 	else
-		remv = NULL;
-
-	return remv;
+		return NULL;
 }
 
 INLINE M_sint32 dlist_empty(M_dlist* head)

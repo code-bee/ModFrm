@@ -92,8 +92,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="base_struct\M_lightpool.c" />
+    <ClCompile Include="base_struct\M_poolinf.c" />
+    <ClCompile Include="base_struct\M_radix_mata.c" />
     <ClCompile Include="base_struct\M_radix_tree.c" />
+    <ClCompile Include="base_struct\M_stackpool.c" />
     <ClCompile Include="MBase.c" />
     <ClCompile Include="base_struct\M_asm.c" />
     <ClCompile Include="base_struct\M_asm_x86.c" />
@@ -109,8 +111,10 @@
     <ClCompile Include="error\M_error.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\M_include\MBase_header\M_lightpool.h" />
+    <ClInclude Include="..\M_include\MBase_header\M_poolinf.h" />
+    <ClInclude Include="..\M_include\MBase_header\M_radix_mata.h" />
     <ClInclude Include="..\M_include\MBase_header\M_radix_tree.h" />
+    <ClInclude Include="..\M_include\MBase_header\M_stackpool.h" />
     <ClInclude Include="MBase_priv.h" />
     <ClInclude Include="..\M_include\M_types.h" />
     <ClInclude Include="..\M_include\MBase.h" />

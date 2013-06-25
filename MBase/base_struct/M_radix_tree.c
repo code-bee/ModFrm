@@ -8,8 +8,6 @@
 #include "../MBase_priv.h"
 #include "MBase.h"
 
-#define get_rt_node(rbt_stub)	container_of(rbt_stub, M_rt_stub, branch_stub)
-
 #define cmp_key_rt	cmp_key_M_sint8
 static INLINE void*		get_key_rt(void* stub)
 {
@@ -30,12 +28,12 @@ INLINE M_sint32	rt_valid(M_rt_stub* stub)
 	return (M_b8_get(&stub->flag, RT_NODE_VALID) == RT_NODE_VALID);
 }
 
-static INLINE void set_rt_valid(M_rt_stub* stub)
+INLINE void set_rt_valid(M_rt_stub* stub)
 {
 	M_b8_set(&stub->flag, RT_NODE_VALID);
 }
 
-static INLINE void set_rt_invalid(M_rt_stub* stub)
+INLINE void set_rt_invalid(M_rt_stub* stub)
 {
 	M_b8_clear(&stub->flag, RT_NODE_VALID);
 }
@@ -60,7 +58,6 @@ static INLINE M_sint32 search_node(M_rt_stub* node, M_sint8* key, M_sint32 key_l
 	return i;
 }
 
-
 /*
 	for a specific char key, return a pointer to a radix tree node that starts with this key
 */
@@ -70,12 +67,6 @@ static INLINE M_rt_stub* search_branch(M_rt_stub* node, M_sint8 key)
 
 	return rbt_stub ? get_rt_node(rbt_stub) : NULL;
 }
-
-static INLINE void replace_parent(M_bst_stub* bst_stub, void* parent)
-{
-	get_rt_node(bst_stub)->parent = parent;
-}
-
 
 static INLINE void update_rt_parent(M_rt_stub* c, M_rt_stub** root)
 {
@@ -88,7 +79,13 @@ static INLINE void update_rt_parent(M_rt_stub* c, M_rt_stub** root)
 	else
 		*root = c;
 }
-static INLINE void update_rt_children(M_rt_stub* c)
+
+INLINE void replace_parent(M_bst_stub* bst_stub, void* parent)
+{
+	get_rt_node(bst_stub)->parent = parent;
+}
+
+INLINE void update_rt_children(M_rt_stub* c)
 {
 	if(c)
 		bst_travel(c->branches, replace_parent, c);
@@ -98,13 +95,14 @@ static INLINE void update_rt_children(M_rt_stub* c)
 	add node c to parent node p. 
 	c must be out side of radix tree
 	this function mainly process skey and skey_len of both p and cl
-	
-	p and c meet following 2 conditions:
-	1. p->skey is a subset of c->skey, 
-	2. c->skey + pos matches p->skey + p->skey_len, 
-	   that means c->skey(pos - p->skey_len : pos) matches p->skey(0 : p->skey_len)
 
-	it's user's responsibility to call update_parent and update_children
+	it's user's responsibility to call update_rt_parent and update_rt_children
+	
+	following comments are obsoleted
+	//p and c meet following 2 conditions:
+	//1. p->skey is a subset of c->skey, 
+	//2. c->skey + pos matches p->skey + p->skey_len, 
+	//   that means c->skey(pos - p->skey_len : pos) matches p->skey(0 : p->skey_len)
 */
 static INLINE void add_rt_node(M_rt_stub* p, M_rt_stub* c, M_sint8* key, M_sint16 key_len)
 {
@@ -439,18 +437,23 @@ void		rt_free_all(M_rt_stub** root, M_free_t free_node, void* pool)
 	*root = NULL;
 }
 
-
-
 void		rt_init_pool(M_rt_pool* pool, M_sint32 stub_offset, M_sint32 max_nr_blocks)
 {
-	lp_init(max_nr_blocks, &pool->invalid_pool);
-	lp_init(max_nr_blocks, &pool->valid_pool);
+	pi_init(&pool->invalid_pool, max_nr_blocks);
+	pi_init(&pool->valid_pool, max_nr_blocks);
 	pool->stub_offset = stub_offset;
 }
+
+void		rt_pool_attach(M_rt_pool* rp, void* pool, M_malloc_t fp_alloc, M_free_t fp_free)
+{
+	pi_attach(&rp->invalid_pool, pool, fp_alloc, fp_free);
+	pi_attach(&rp->valid_pool, pool, fp_alloc, fp_free);
+}
+
 void		rt_destroy_pool(M_rt_pool* pool)
 {
-	lp_destroy(&pool->invalid_pool);
-	lp_destroy(&pool->valid_pool);
+	pi_destroy(&pool->invalid_pool);
+	pi_destroy(&pool->valid_pool);
 }
 
 void		rt_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
@@ -468,6 +471,21 @@ void		rt_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
 	}
 }
 
+void		rt_free_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
+{
+	if(extra_arg->dummy_node)
+	{
+		rt_free(extra_arg->dummy_node, pool);
+		extra_arg->dummy_node = NULL;
+	}
+
+	if(extra_arg->extra_node)
+	{
+		rt_free(extra_arg->extra_node, pool);
+		extra_arg->extra_node = NULL;
+	}
+}
+
 void		rt_free_all_p(M_rt_stub** root, M_rt_pool* pool)
 {
 	rt_free_all(root, rt_free, pool);
@@ -477,11 +495,11 @@ void*	rt_alloc(M_sint32 size, M_rt_pool* pool)
 {
 	//M_sint8* ret = NULL;
 	if(size == sizeof(M_rt_stub))
-		return lp_alloc(size, &pool->invalid_pool);
+		return pi_alloc(size, &pool->invalid_pool);
 	else
 	{
-		return lp_alloc(size, &pool->valid_pool);
-		//if( (ret = (M_sint8*)lp_alloc(size, &pool->valid_pool)) )
+		return pi_alloc(size, &pool->valid_pool);
+		//if( (ret = (M_sint8*)pi_alloc(size, &pool->valid_pool)) )
 		//	return (M_rt_stub*)(ret + pool->stub_offset);
 		//else
 		//	return NULL;
@@ -490,8 +508,7 @@ void*	rt_alloc(M_sint32 size, M_rt_pool* pool)
 void		rt_free(M_rt_stub* mem, M_rt_pool* pool)
 {
 	if(rt_valid(mem))
-		lp_free(((M_sint8*)mem) - pool->stub_offset, &pool->valid_pool);
+		pi_free(((M_sint8*)mem) - pool->stub_offset, &pool->valid_pool);
 	else
-		lp_free(mem, &pool->invalid_pool);
-		
+		pi_free(mem, &pool->invalid_pool);
 }

@@ -16,7 +16,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /*
 	used in M_rt_stub->flag, as bit indicator
 */
@@ -31,20 +30,26 @@ extern "C" {
 #define RT_MODE_EXACT		1
 #define RT_MODE_LONGEST_EX	2
 
+#define rt_stub_DECLARE\
+	/* branch stub, parent use it */\
+	M_bst_stub			branch_stub;\
+	/* string key, it points to (offset of) a string of its wrapper structure in valid node */\
+	/* trick: points to branches->skey - current_node->skey_len in invalid node */\
+	M_sint8*			skey;\
+	\
+	/* children here */\
+	M_bst_stub*			branches;\
+	\
+	M_sint8				color;\
+	/* to identify the node is valid(user inserted node) or not(splitted node) */\
+	M_bulletin8			flag;\
+	/* length of string from position of skey */\
+	M_sint16			skey_len
+
 typedef struct st_rt_stub
 {
-	M_bst_stub			branch_stub;	//branch stub, parent use it
-	M_sint8*			skey;			//string key, it points to (offset of) a string of its wrapper structure in valid node
-										//trick: points to branches->skey - current_node->skey_len in invalid node
+	rt_stub_DECLARE;
 	struct st_rt_stub*	parent;
-	M_bst_stub*			branches;		//children here
-
-	//M_rt_stub*		child;	//trick: child pointer is no longer need, because this stub lays in child node, see get_rt_node macro
-	//M_sint8			ckey;	//trick: ckey is just skey[0]
-	M_sint8				color;
-	M_bulletin8			flag;			//to identify the node is valid(user inserted node) or not(splitted node)
-	M_sint16			skey_len;		//length of string from position of skey
-	
 } M_rt_stub;
 
 typedef struct st_rt_arg
@@ -79,7 +84,7 @@ typedef struct st_rt_arg
 			1) arg->dummy_node will be inserted as P's parent, both insert_node and P become dummy_node's children
 	   if dummy_node is used, NULL is set to inform user, user should manage all the cases to avoid memory leak
 
-	   callback get_key is used to get key address of wrapper structure
+	   return NULL if insert success, otherwise conflict node in radix tree will be returned
 
    rt_remove:
 		there are 5 cases when remove a node from radix tree:
@@ -116,25 +121,38 @@ MBASE_API	void		rt_free_all(M_rt_stub** root, M_free_t free_node, void* pool);
 MBASE_API	INLINE	M_sint32	rt_valid(M_rt_stub* node);
 
 /*
-	interface integrated with lightpool, so user may not care memory in this case
+	following APIs and macros are for M_radix_mata only, please do NOT use them
+*/
+MBASE_API	INLINE void set_rt_valid(M_rt_stub* stub);
+MBASE_API	INLINE void set_rt_invalid(M_rt_stub* stub);
+MBASE_API	INLINE void replace_parent(M_bst_stub* bst_stub, void* parent);
+MBASE_API	INLINE void update_rt_children(M_rt_stub* c);
+
+#define get_rt_node(rbt_stub)	container_of(rbt_stub, M_rt_stub, branch_stub)
+
+
+/*
+	interface integrated with poolinf, so user may not care memory alloc/free with these APIs
 */
 typedef struct st_rt_pool
 {
-	M_lightpool	valid_pool;
-	M_lightpool invalid_pool;
+	M_poolinf	valid_pool;
+	M_poolinf	invalid_pool;
 	M_sint32	stub_offset;
 } M_rt_pool;
 
 #define	rt_search_p	rt_search
 
-MBASE_API	void		rt_init_pool(M_rt_pool* pool, M_sint32 stub_offset, M_sint32 max_nr_blocks);
-MBASE_API	void		rt_destroy_pool(M_rt_pool* pool);
+MBASE_API	void		rt_init_pool(M_rt_pool* rp, M_sint32 stub_offset, M_sint32 max_nr_blocks);
+MBASE_API	void		rt_pool_attach(M_rt_pool* rp, void* pool, M_malloc_t fp_alloc, M_free_t fp_free);
+MBASE_API	void		rt_destroy_pool(M_rt_pool* rp);
 
-MBASE_API	void		rt_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg);
+MBASE_API	void		rt_process_arg(M_rt_pool* rp, M_rt_arg* extra_arg);
+MBASE_API	void		rt_free_arg(M_rt_pool* rp, M_rt_arg* extra_arg);
 /*
-	only free nodes in radix tree, these nodes are kept in pool
+	only free nodes from radix tree, these "freed" nodes are kept in poolinf
 */
-MBASE_API	void		rt_free_all_p(M_rt_stub** root, M_rt_pool* pool);
+MBASE_API	void		rt_free_all_p(M_rt_stub** root, M_rt_pool* rp);
 
 /*
 	only 2 sizes are supported:
@@ -144,7 +162,6 @@ MBASE_API	void		rt_free_all_p(M_rt_stub** root, M_rt_pool* pool);
 	a delimma is the what to return of rt_alloc, and how to set parameter mem of rt_free
 	finally we choose return base address of memory allocated by rt_alloc, 
 	that means there are two types of memory that return by rt_malloc: M_rt_stub, and user structure that contains M_rt_stub
-
 	but addresses deliver to rt_free are all address of M_rt_stub, is inconsistent with return value of rt_alloc
 
 	it's not a good idea to return only address of M_rt_stub in rt_alloc, 
@@ -153,11 +170,11 @@ MBASE_API	void		rt_free_all_p(M_rt_stub** root, M_rt_pool* pool);
 	it's also not a good idea to deliver only base address to rt_free, 
 	because system needs to add flag to distinguish what type of the memory is
 
-	so that's why our last choice is not symmetric. it's also the intrinsic defect of lightpool: 
+	so that's why our last choice is not symmetric. it's also the intrinsic defect of poolinf: 
 	can only support fixed size memory blocks, users need to deal many many things
 */
-MBASE_API	void*		rt_alloc(M_sint32 size, M_rt_pool* pool);
-MBASE_API	void		rt_free(M_rt_stub* mem, M_rt_pool* pool);
+MBASE_API	void*		rt_alloc(M_sint32 size, M_rt_pool* rp);
+MBASE_API	void		rt_free(M_rt_stub* mem, M_rt_pool* rp);
 
 #ifdef __cplusplus
 }

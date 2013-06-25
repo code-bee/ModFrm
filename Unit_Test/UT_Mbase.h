@@ -35,6 +35,8 @@ M_sint32	UT_err();
 
 M_sint32	UT_radix_tree();
 M_sint32	UT_radix_tree_pool();
+M_sint32	UT_radix_multichar_pool();
+M_sint32	UT_radix_mata();
 
 #ifdef __cplusplus
 }

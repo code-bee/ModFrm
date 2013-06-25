@@ -9,6 +9,14 @@
 #include "MBase.h"
 #include <assert.h>
 
+#ifdef __M_CFG_LP_LEAK
+static M_sint32 s_alloc_counts = 0;
+INLINE M_sint32	lp_get_mem_cts()
+{
+	return s_alloc_counts;
+}
+#endif
+
 INLINE void	lp_init(M_sint32 max_nr_blocks, M_lightpool* lp)
 {
 	slist_init(&lp->head);
@@ -30,6 +38,9 @@ INLINE void	lp_destroy(M_lightpool* lp)
 
 INLINE void*	lp_alloc(M_sint32 size, M_lightpool* lp)
 {
+#ifdef __M_CFG_LP_LEAK
+	s_alloc_counts++;
+#endif
 	if(!slist_empty(&lp->head))
 	{
 		--lp->nr_blocks;
@@ -41,6 +52,9 @@ INLINE void*	lp_alloc(M_sint32 size, M_lightpool* lp)
 
 INLINE void	lp_free(void* mem, M_lightpool* lp)
 {
+#ifdef __M_CFG_LP_LEAK
+	s_alloc_counts--;
+#endif
 	if(lp->nr_blocks < lp->max_nr_blocks)
 	{
 		slist_insert(&lp->head, (M_slist*)mem);

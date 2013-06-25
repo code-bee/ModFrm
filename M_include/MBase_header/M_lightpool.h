@@ -31,6 +31,10 @@ MBASE_API INLINE void	lp_destroy(M_lightpool* lp);
 MBASE_API INLINE void*	lp_alloc(M_sint32 size, M_lightpool* lp);
 MBASE_API INLINE void	lp_free(void* mem, M_lightpool* lp);
 
+#ifdef __M_CFG_LP_LEAK
+MBASE_API INLINE M_sint32	lp_get_mem_cts();
+#endif
+
 
 #ifdef __cplusplus
 }

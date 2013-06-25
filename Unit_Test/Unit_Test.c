@@ -9,9 +9,6 @@
 	#pragma comment(lib, "../release/MBase.lib")
 	#pragma comment(lib, "../release/pthread.lib")
 #endif
-
-
-
 #endif
 
 #include "UT_MBase.h"
@@ -21,6 +18,8 @@ int main()
 	int ret = 0;
 	printf("int:%d, long: %d, long long:%d, ptr: %d\n", sizeof(int), sizeof(long), sizeof(long long), sizeof(void*));
 
+	ret &= UT_radix_mata();
+	ret &= UT_radix_multichar_pool();
 	ret &= UT_bsthash();
 	ret &= UT_radix_tree();
 	ret &= UT_radix_tree_pool();

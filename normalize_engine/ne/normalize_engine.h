@@ -27,7 +27,7 @@
 
 typedef struct st_cfg_common
 {
-	M_sint32	nr_groups_in_rule;
+	M_sint32	nr_groups;
 	M_sint32	pattern_id_len;
 	M_sint8		default_group[GROUP_NAME_LEN];
 	M_sint8		group_order[GROUP_NAME_LEN*NR_GROUPS];
@@ -102,6 +102,21 @@ void print_cfg(ne_cfg_t* cfgs);
 	以上这些对象都需要在构造阶段构造完毕。
 	为了构造这些对象，还需要实现一个方法：
 	根据分隔符位置、类型信息对输入串进行组、段划分。输入串可以是match_rule，也可以是待匹配串。
+
+	为各个对象起名字：
+	串约束（str_cons)：	匹配规则中按组(group)分割剩下的非通配部分，保存其相对位置信息和要求，存在于rule和串radix tree中
+						str_cons在rule中是按照出现顺序组织的
+	分隔符约束（delim_cons）：	保存分隔符的类型信息，存在于分隔符链表（delim_list）和串radix中。其中delim_list中的delim_cons
+								是按照group顺序组织的。分隔符与串约束的串必不相同
+	
+	通配符约束（wc_cons）： 通配符约束记录通配符在匹配规则和归一化规则中的位置和编号信息。编号信息反映了提取规则
+							通配符类型是静态变量，只有四种类型
+
+	模式串（pattern）：	模式串只代表字符串，与约束无关。str_cons和delim_cons都指向pattern。
+	模式串的radix_tree：将pattern组织成radix tree，每个pattern都有约束链表。str_cons和delim_cons挂在同一个链表上。
+						由于分隔符与模式串不相同，所以事实上一个pattern的约束链表中要么全是delim_cons，要么全是str_cons
+
+	rule_t：包含匹配规则和归一化规则。都以链表的形式按照顺序存放
 */
 struct st_rule;
 struct st_pattern;
@@ -116,62 +131,82 @@ struct st_pattern;
 typedef cfg_group_t	group_t;
 
 /*
-	owner_stub lays in string pattern, delimiter, and wildcard
+	ele_stub lays in all constraints: str_cons, delim_cons, wc_cons
 */
-#define owner_stub_DECLARE\
-	/* list of it's owner. for string pattern, it is used by rule_t; for delimiter, it is used by delim_head */\
+#define ele_stub_DECLARE\
+	/* list of it's owner. for string pattern, it is used by rule_t; */\
 	/* for wildcard, it is used by rule_t, together with string pattern to build a completed match rule */\
-	M_slist		owner_stub;\
-	/* indicate current constraint is of string pattern or delimiter pattern, or wildcard */\
-	M_sint8		self_type
+	/* for delim and special delim, it is used by delim_set */\
+	M_slist		ele_stub;\
+	/* ET_XXX, indicate type of current element: string constraint, delim constraint, special delim constraint, wildcard... */\
+	M_sint8		ele_type
 
 /*
 	pattern_stub lays in constraint of string pattern and delimiter
 */
 #define pattern_stub_DECLARE\
-	/* list of constraints of string pattern or delimiters with same string key, used in pattern_t */\
+	/* list of str_cons or delim_cons with same string key, used by pattern_t */\
 	M_slist		pat_stub;\
 	/* points to current pattern */\
 	struct st_pattern*	pat;\
 	/* which group it belongs to */\
 	group_t*	grp;\
-	owner_stub_DECLARE
+	ele_stub_DECLARE
 
-typedef struct st_cons_str_pat
+typedef struct st_str_cons
 {
-	pattern_stub_DECLARE;
-	M_sint8		string_type;	//boundary seg is completed or not, pos is equal or greater than
+	pattern_stub_DECLARE;		// pat_stub is used in pattern_t, ele_stub is used in rule_t
+	M_sint8		string_type;	//ST_XXX, boundary seg is completed or not, pos is equal or greater than
 	M_sint8		start_pos;
 	M_sint8		end_pos;		//both are seg positions
 	struct st_rule*	rule;		//which rule it belongs to
-} cons_str_pat_t;
+} str_cons_t;
 
 /*
 	分隔符可以完全相同，但不允许出现包含，或前后缀关系
 */
-typedef struct st_cons_delim_pat
+typedef struct st_delim_cons
 {
-	pattern_stub_DECLARE;
-	M_sint16	delim_type;		//group delim(start/end), or seg delim
-} cons_delim_pat_t;
+	pattern_stub_DECLARE;		// pat_stub used in pattern_t, ele_stub is used in delim_set
+	M_sint16	delim_type;		//DT_XXX, group delim(start/end), or seg delim
+} delim_cons_t;
 
 typedef struct st_pattern
 {
 	M_rt_stub	rt_stub;
 	M_sint8*	str;
 	M_sint16	str_len;
-	M_sint16	type;		//string pattern or delimiter pattern
-	M_slist		cons_list;	//list of constraints, could be pattern constraints, or delimiter constraints
+	M_sint16	type;		//PT_XXX, string pattern or delimiter pattern
+	M_slist		cons_head;	//list of constraints, could be pattern constraints, or delimiter constraints
 } pattern_t;
 
-typedef struct st_wildcard
+/*
+	wc_cons_t does not have member varible that points to corresponding rule,
+	because wildcard is always visited via rule
+*/
+typedef struct st_wc_cons
 {
-	owner_stub_DECLARE;
-	M_sint8		type;	//wildcard of seg or char	
+	ele_stub_DECLARE;	//ele_stub used in rule_t
+	M_sint8		type;	//WT_XXX, wildcard of seg or char	
 	M_sint16	no;		//0 if it is not numbered
-	M_slist*	ante;	//anterior element in match_rule, could be cons of string pattern, or another wildcard
-	M_slist*	post;	//posterior element in match_rule, could be cons of string pattern, or another wildcard
-} wildcart_t;
+	group_t*	grp;	//which group it belongs to
+} wc_cons_t;
+
+typedef struct st_rule
+{
+	M_slist		match_list;		// list of wildcard and constraints of string pattern of match_rule
+	M_slist		normal_list;	// list of wildcard and string pattern of normal rule
+} rule_t;
+
+// used in delim_set, its cons type is CT_SPECIAL_DELIM
+// while delim type contains DT_HAT/DT_DOLLAR
+// special delim does not exist in radix tree
+typedef struct st_special_delim
+{
+	ele_stub_DECLARE;			// ele_stub used in delim_set
+	M_sint16	delim_type;
+	group_t*	grp;
+} special_delim_t;
 
 /*
 	wrapper of ac mata, besides ac handle, callbacks for ac are also integrated
@@ -182,77 +217,53 @@ typedef struct st_acmata
 	//callbacks...
 } acmata_t;
 
-typedef struct st_rule
-{
-	M_slist		match_list;		// list of wildcard and constraints of string pattern of match_rule
-	M_slist		normal_list;	// list of wildcard and string pattern of normal rule
-} rule_t;
-
 /*
 	top structure, combine all data together
-	ne_model_t is a read only structure, could be shared among threads
+	normalize_engine_t is a read only structure, could be shared among threads
 */
 typedef struct st_ne_model
 {
 	acmata_t	acmata;			//ac mata
 	M_rt_stub*	pat_tree;		//radix tree for patterns
-	M_slist		delim_head;		//delimiter list
+	M_slist*	delim_set;		//delimiter constraint list. 
+								//actually it points to a list array, each group has a list in the array
+								//member types are special_delim_t and delim_cons_t
+								//linked via ele_stub， indentified by ele_type
 	rule_t*		rules;			//rule array
 	M_sint32	nr_rules;		//number of rules
-} ne_model_t;
+	void*		memory;			//memory block that ne model layes in
+} normalize_engine_t;
 
 /*
-	M_lightpool is not thread safe, so thread_ne_t is introduced to support multithread scenarios
+	M_poolinf is not thread safe, so thread_ne_t is introduced to support multithread scenarios
 */
 typedef struct st_thread_ne
 {
-	ne_model_t*	model;
-	M_lightpool	delim_pool;
+	normalize_engine_t*	model;
+	M_poolinf	delim_pool;		//sizeof(delim_cons_t)
+	//M_poolinf	str_pool;		//sizeof(str_cons_t)
+	//M_poolinf	pat_pool;		//sizeof(pattern_t)
 } thread_ne_t;
 
 /*
-	a helper structure for recording position of delimiters,
-	is used to parse input string
+	called after config file read over, usually in main thread
+	return value of build_normalize_engine: bytes of memory it used if success
+											-1 if fail
 */
-typedef struct st_delim_pos
-{
-	M_slist				list_stub;		// list stub used in delim_param_t
-	cons_delim_pat_t*	delim;			// what the delim is
-	M_sint16			pos;			// where it occurs in input string
-	M_sint16			type;			// final type of delim after input string is parsed(parse_string is called)
-} delim_pos_t;
-
-typedef struct st_delim_param
-{
-	M_slist			list_head;
-} delim_param_t;
+M_sint32	build_normalize_engine(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size);
+M_sint32	destroy_normalize_engine(normalize_engine_t* model);
+/*
+	called in worker thread, after ne model build over
+	actually, it is to build memory pool for worker threads
+*/
+M_sint32	build_thread_model(normalize_engine_t* model, thread_ne_t* t_model);
 
 /*
-	一组用于解析输入串的函数，目的在于将AC状态机匹配得到的各种delim组织起来，
-	并利用其进行输入串分组、分段。当输入串解析完成后，基本上这个param就可以释放了。
-
-	在这里用lightpool管理delim_pos_t
+	destroy thread model does not destory ne_model it wraps..
 */
-M_sint32	delim_param_init(delim_param_t* param);
-M_sint32	delim_param_insert(delim_param_t* param, cons_delim_pat_t* delim, thread_ne_t* t_model);
-M_sint32	delim_param_destroy(delim_param_t* param, thread_ne_t* t_model);
-
-/*
-	解析得到的结果仍然放在param中，type域将会有有效数据。
-	解析中认为非法的delim将会被删除
-*/
-M_sint32	parse_string(M_sint8* str, M_sint32 str_len, delim_param_t* param);
+M_sint32	destory_thread_model(thread_ne_t* t_model);
 
 
-M_sint32	ne_model_init(ne_model_t* model);
-M_sint32	t_model_init(thread_ne_t* t_model);
-
-M_sint32	str_pat_insert(M_sint8* str, M_sint32 str_len, thread_ne_t* t_model);
-M_sint32	delim_pat_insert(M_sint8* delim, M_sint32 delim_len, thread_ne_t* model);
-M_sint32	rule_insert();
-M_sint32	build_acmata(ne_model_t* model);
-
-M_sint32	build_ne_model(ne_model_t* model, ne_cfg_t* cfg);
 
 /*
 	3. 待处理串匹配，归一化阶段
