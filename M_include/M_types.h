@@ -88,6 +88,12 @@ typedef M_uintptr		M_size_t;
 #define offset_of(type, member)			( (M_sint8*)(&((type*)0)->member) )
 #define container_of(ptr, type, member)	( (type*)((M_sint8*)ptr - offset_of(type, member)) )
 
+typedef struct st_string
+{
+	M_sint8*	str;
+	M_sint32	str_len;
+} M_string;
+
 
 /*
 	general function types

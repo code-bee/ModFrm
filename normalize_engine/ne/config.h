@@ -67,7 +67,7 @@ typedef struct st_user_config_set
 	int		nr_sets;
 } user_config_set_t;
 
-int		read_config(char* cfg_file, config_t* config_array, int nr_config_array, void* cfg);
+int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg, void (*default_cfg)(void* cfgs));
 void	release_config(config_t* config_array, int nr_config_array, void* cfg);
 
 static __inline void int_acc_setter(int dummy, void* write_address)
@@ -95,6 +95,18 @@ static __inline int port_reader(char* in_string, void* out_value)
 #ifndef WINDOWS
 	*(short *)out_value = htons(atoi(in_string));
 #endif
+	return 0;
+}
+
+static __inline int int8_reader(char *in_string,void *out_value)
+{
+	*(char *)out_value= atoi(in_string);
+	return 0;
+}
+
+static __inline int char_reader(char *in_string,void *out_value)
+{
+	*(char *)out_value= *in_string;
 	return 0;
 }
 

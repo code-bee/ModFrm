@@ -68,7 +68,7 @@ typedef struct st_rt_arg
 		key: to be searched string
 		key_len: can be 0, means that key is a common C string ended by '\0'
 		mode: longest match / exact match
-		matched_len: [out], return how many chars that matched if search successfully
+		matched_len: [out], return how many chars that matched if search successfully, could be NULL
 
 	rt_insert_node:
 		there are 5 cases when insert a node to radix tree:

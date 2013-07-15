@@ -103,6 +103,21 @@ MBASE_API INLINE void dlist_append(M_dlist* head, M_dlist* node);
 	remove arbitary node in double list, of course node must not be head
 */
 MBASE_API INLINE M_dlist* dlist_remove(M_dlist* head, M_dlist* node);
+
+/*
+	remove sub list from start to end from double list head. both start and end are all removed
+	returned list is NULL terminated from start to end
+*/
+MBASE_API INLINE void dlist_remove_list(M_dlist* head, M_dlist* start, M_dlist* end);
+
+/*
+	insert total list into head->next
+*/
+MBASE_API INLINE void dlist_insert_list(M_dlist* head, M_dlist* start, M_dlist* end);
+/*
+	append total list into head->prev
+*/
+MBASE_API INLINE void dlist_append_list(M_dlist* head, M_dlist* start, M_dlist* end);
 /*
 	return 1 if dlist is empty, 0 otherwise
 */

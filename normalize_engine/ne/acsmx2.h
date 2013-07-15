@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
  *
  * Copyright (C) 2004-2012 Sourcefire, Inc.
  *
@@ -198,4 +198,5 @@ int acsmPrintSummaryInfo2(void);
 void acsmx2_print_qinfo(void);
 void acsm_init_summary(void);
 
+void Print_DFA(ACSM_STRUCT2 * acsm);
 #endif

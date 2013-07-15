@@ -165,6 +165,38 @@ INLINE M_dlist* dlist_remove(M_dlist* head, M_dlist* node)
 		return NULL;
 }
 
+INLINE void dlist_remove_list(M_dlist* head, M_dlist* start, M_dlist* end)
+{
+	if(head != start && head != end)
+	{
+		start->prev->next = end->next;
+		end->next->prev = start->prev;
+		end->next = NULL;
+		start->prev = NULL;
+	}
+}
+
+INLINE void dlist_insert_list(M_dlist* head, M_dlist* start, M_dlist* end)
+{
+	if(head != start && head != end)
+	{
+		end->next = head->next;
+		head->next->prev = end;
+		head->next = start;
+		start->prev = head;
+	}
+}
+INLINE void dlist_append_list(M_dlist* head, M_dlist* start, M_dlist* end)
+{
+	if(head != start && head != end)
+	{
+		start->prev = head->prev;
+		head->prev->next = start;
+		end->next = head;
+		head->prev = end;
+	}
+}
+
 INLINE M_sint32 dlist_empty(M_dlist* head)
 {
 	return (head == head->next);

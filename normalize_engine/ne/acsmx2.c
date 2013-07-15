@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 **   $Id$
 **
 ** Copyright(C) 2002,2003,2004 Marc Norton
@@ -1340,7 +1340,7 @@ Print_DFA_MatchList( ACSM_STRUCT2 * acsm, int state )
 /*
 *
 */
-static void
+void
 Print_DFA(ACSM_STRUCT2 * acsm)
 {
   int  k,i;
@@ -1639,7 +1639,7 @@ int acsmSetAlphabetSize2( ACSM_STRUCT2 * acsm, int n )
 
 /*==================================================================
 * Function	: acsmNew2
-* Description	: ĞÂ½¨ Ò»¸ö×Ô¶¯»ú£¬²ÎÊıÎª·µ³õÊ¼»¯Ê±µ÷ÓÃµÄ·´×¢²áº¯Êı£¬¿ÉÖ±½ÓÎª¿Õ
+* Description	: æ–°å»º ä¸€ä¸ªè‡ªåŠ¨æœºï¼Œå‚æ•°ä¸ºè¿”åˆå§‹åŒ–æ—¶è°ƒç”¨çš„åæ³¨å†Œå‡½æ•°ï¼Œå¯ç›´æ¥ä¸ºç©º
 * Input Para	:
 * Output Para	:
 * Return Value:
@@ -1661,7 +1661,8 @@ ACSM_STRUCT2 * acsmNew2 (void (*userfree)(void *p),
 
     /* Some defaults */
     p->acsmFSA               = FSA_DFA;
-    p->acsmFormat            = ACF_BANDED;//ACF_FULL;//ACF_BANDED;		//ACF_FULL»áµ¼ÖÂÖØ¸´ÃüÖĞ¡£
+    //p->acsmFormat            = ACF_BANDED;//ACF_FULL;//ACF_BANDED;		//ACF_FULLä¼šå¯¼è‡´é‡å¤å‘½ä¸­ã€‚
+	p->acsmFormat            = ACF_FULL;//ACF_BANDED;		//ACF_FULLä¼šå¯¼è‡´é‡å¤å‘½ä¸­ã€‚
     p->acsmAlphabetSize      = 256;
     p->acsmSparseMaxRowNodes = 256;
     p->acsmSparseMaxZcnt     = 10;
@@ -1679,9 +1680,9 @@ ACSM_STRUCT2 * acsmNew2 (void (*userfree)(void *p),
 
 /*==================================================================
 * Function	: acsmAddPattern2
-* Description	: Ìí¼ÓÒ»¸öÄ£Ê½´®
-* Input Para	: P ×Ô¶¯»ú¾ä±ú£¬pat Ä£Ê½´®ÄÚÈİ£¬nÄ£Ê½´®³¤¶È£¬nocase ÊÇ·ñ¹ØĞÄ´óĞ¡Ğ´£¬
-                offset depth negative ÔİÊ±Ã»ÓÃ¡£id ¿ÉÔÚ½øĞĞÖ´ĞĞ»Øµ÷Ê±£¬´«ÈëÊ¹ÓÃ£¬iidÃ»ÓÃ¹ı¡£
+* Description	: æ·»åŠ ä¸€ä¸ªæ¨¡å¼ä¸²
+* Input Para	: P è‡ªåŠ¨æœºå¥æŸ„ï¼Œpat æ¨¡å¼ä¸²å†…å®¹ï¼Œnæ¨¡å¼ä¸²é•¿åº¦ï¼Œnocase æ˜¯å¦å…³å¿ƒå¤§å°å†™ï¼Œ
+                offset depth negative æš‚æ—¶æ²¡ç”¨ã€‚id å¯åœ¨è¿›è¡Œæ‰§è¡Œå›è°ƒæ—¶ï¼Œä¼ å…¥ä½¿ç”¨ï¼Œiidæ²¡ç”¨è¿‡ã€‚
 * Output Para	:
 * Return Value:
 ==================================================================*/

@@ -19,6 +19,17 @@ extern "C" {
 		(a) += (b);	(b) = (a)-(b); (a) -= (b);\
 	} while(0)
 
+#define	M_max(a, b)	((a) > (b) ? (a) : (b))
+#define	M_min(a, b)	((a) < (b) ? (a) : (b))
+
+
+/*
+	gnu版本的snprintf最多写size个字符到str中，包括结尾0
+	ms版本的_snprintf最多写size个字符到str中，不包括结尾0
+	统一后的M_snprintf兼容gnu
+*/
+MBASE_API	INLINE	void M_snprintf(M_sint8* str, M_size_t size, const M_sint8* format, ...);
+
 MBASE_API	INLINE	void M_swap(void* s1, void* s2, M_sintptr len);
 
 MBASE_API	INLINE	void M_swap8(M_sint8* s1, M_sint8* s2);

@@ -1,4 +1,4 @@
-/* 
+ï»¿/* 
 	M_radix_mata.c : a radix-tree-like structure, support wildcard to mimic multi-regular expression matching..
 
 	kevin.zheng@gmail.com
@@ -544,13 +544,13 @@ static INLINE M_rm_stub* rm_splitnode(M_rm_root* root, M_rm_stub* stub, M_sint32
 }
 
 /*
-	ºÃÔÚ½øĞĞmatafyÇĞ¸îÊ±£¬Ã¿¸öĞÂÔö½Úµã¶¼Ö»ÓĞÒ»¸ö¸¸½Úµã£¬Ò»¸ö×Ó½Úµã£¬ËùÒÔ¼ò»¯ÁË²»ÉÙ²Ù×÷
-	²»¹ıÒ²ÕıÊÇÒòÎªÈç´Ë£¬ÆÆ»µÁËradix treeµÄ½á¹¹£¬µ¼ÖÂmatafyÖ®ºóremoveºÍinsert²Ù×÷¶¼²»ÄÜ×öÁË£¬Ö»ÄÜsearch
-	¿ÉÒÔÔÚM_rm_rootÖĞ¼ÓÈë±êÖ¾£¬±£Ö¤matafyÁËÖ®ºó¾Ü¾øÖ´ĞĞinsertºÍremove
+	å¥½åœ¨è¿›è¡Œmatafyåˆ‡å‰²æ—¶ï¼Œæ¯ä¸ªæ–°å¢èŠ‚ç‚¹éƒ½åªæœ‰ä¸€ä¸ªçˆ¶èŠ‚ç‚¹ï¼Œä¸€ä¸ªå­èŠ‚ç‚¹ï¼Œæ‰€ä»¥ç®€åŒ–äº†ä¸å°‘æ“ä½œ
+	ä¸è¿‡ä¹Ÿæ­£æ˜¯å› ä¸ºå¦‚æ­¤ï¼Œç ´åäº†radix treeçš„ç»“æ„ï¼Œå¯¼è‡´matafyä¹‹åremoveå’Œinsertæ“ä½œéƒ½ä¸èƒ½åšäº†ï¼Œåªèƒ½search
+	å¯ä»¥åœ¨M_rm_rootä¸­åŠ å…¥æ ‡å¿—ï¼Œä¿è¯matafyäº†ä¹‹åæ‹’ç»æ‰§è¡Œinsertå’Œremove
 */
 static INLINE M_sint32 rm_matafy_node(M_rm_root* root, M_rm_stub* stub, M_malloc_t mem_alloc, void* pool)
 {
-	M_sint32	i = 1;	//i=0Ò²¿ÉÒÔ£¬²»¹ı0ÊÇ¶àÓàµÄ£¬ÒòÎª²»»á³öÏÖÁ¬ĞøµÄÍ¨Åä
+	M_sint32	i = 1;	//i=0ä¹Ÿå¯ä»¥ï¼Œä¸è¿‡0æ˜¯å¤šä½™çš„ï¼Œå› ä¸ºä¸ä¼šå‡ºç°è¿ç»­çš„é€šé…
 	M_rm_stub*	wc_node;
 
 
@@ -561,7 +561,7 @@ static INLINE M_sint32 rm_matafy_node(M_rm_root* root, M_rm_stub* stub, M_malloc
 		return 0;
 	}
 
-	//Í¨³£Çé¿öÏÂÃæµÄÂß¼­ÓĞÎÊÌâ£¬²»¹ıÔÚradix mataÖĞÓÉÓÚ²»»á³öÏÖÁ¬ĞøµÄÍ¨Åä£¬ËùÒÔÕâÑùÊÇOKµÄ
+	//é€šå¸¸æƒ…å†µä¸‹é¢çš„é€»è¾‘æœ‰é—®é¢˜ï¼Œä¸è¿‡åœ¨radix mataä¸­ç”±äºä¸ä¼šå‡ºç°è¿ç»­çš„é€šé…ï¼Œæ‰€ä»¥è¿™æ ·æ˜¯OKçš„
 	
 	if(!cmp_key_rmt(root->wildcard, stub->skey, (M_rmt_root*)root))
 	{
@@ -705,7 +705,7 @@ static INLINE void	rm_convert_inputlist(M_rm_handle* handle, M_rm_root* root, M_
 	M_rm_input* input_node;
 	M_sint32	i = 0;
 
-	//ÏÈÄæĞò
+	//å…ˆé€†åº
 	slist_reverse(&handle->input_head);
 	input_stub = handle->input_head.next;
 	while(input_stub != &handle->input_head)
@@ -755,7 +755,7 @@ static INLINE void	rm_state_init(M_rm_state* state, M_rm_state* parent, M_rm_stu
 }
 
 /*
-	²éÕÒÍ¨Åä½ÚµãµÄ×Ó½ÚµãÖĞÊÇ·ñÓĞºÍÊäÈë×Ö·ûÆ¥ÅäµÄ
+	æŸ¥æ‰¾é€šé…èŠ‚ç‚¹çš„å­èŠ‚ç‚¹ä¸­æ˜¯å¦æœ‰å’Œè¾“å…¥å­—ç¬¦åŒ¹é…çš„
 */
 static INLINE M_sint32	rm_process_wc_child(M_rm_root* root, M_rm_handle* handle, M_rm_state* state, M_sint32 key_pos, M_slist* add_list)
 {
@@ -763,7 +763,7 @@ static INLINE M_sint32	rm_process_wc_child(M_rm_root* root, M_rm_handle* handle,
 	M_sint8*	key = handle->input_array;
 	M_rm_state* new_state;
 
-	//Í¨Åä½Úµã²»¿ÉÄÜÔÙÓĞÍ¨Åä×Ó½Úµã
+	//é€šé…èŠ‚ç‚¹ä¸å¯èƒ½å†æœ‰é€šé…å­èŠ‚ç‚¹
 	assert(!state->rm_stub->wc_node);
 
 	if( (t = (M_rm_stub*)search_branch((M_rmt_root*)root, (M_rt_stub*)state->rm_stub, &key[key_pos << root->ele_pow])) )
@@ -796,15 +796,15 @@ static INLINE	void	rm_remove_state(M_rm_root* root, M_rm_state* state, M_slist* 
 }
 
 /*
-	´¦Àíµ±Ç°state£¬key_pos´ú±íinput_arrayµÄµ±Ç°Î»ÖÃ¡£
-	Êµ¼ÊÉÏkey_pos±ÈstateµÄÎ»ÖÃÒª´óÒ»
+	å¤„ç†å½“å‰stateï¼Œkey_posä»£è¡¨input_arrayçš„å½“å‰ä½ç½®ã€‚
+	å®é™…ä¸Škey_posæ¯”stateçš„ä½ç½®è¦å¤§ä¸€
 
-	µ±Ç°stateÓĞÁ½ÖÖÇé¿ö£ºÍ¨Åä/·ÇÍ¨Åä
-	µ±Ç°ÎªÍ¨ÅäÊ±¿ÉÄÜÒªĞÂÔö×´Ì¬
-	µ±Ç°Îª·ÇÍ¨ÅäÊ±¼ì²éÆä×Ó½Úµã£¬Æä×Ó½Úµã¿ÉÄÜÓĞÍ¨Åä£¬
-	¶Ô×ÓÍ¨Åä½Úµã»¹ĞèÒª¼ì²éÆä×Ó½ÚµãÖĞÓĞÎŞºÍµ±Ç°ÊäÈë×Ö·ûÆ¥ÅäµÄ£¬Èç¹ûÓĞ£¬»¹ĞèÒªÌí¼Ó×´Ì¬
+	å½“å‰stateæœ‰ä¸¤ç§æƒ…å†µï¼šé€šé…/éé€šé…
+	å½“å‰ä¸ºé€šé…æ—¶å¯èƒ½è¦æ–°å¢çŠ¶æ€
+	å½“å‰ä¸ºéé€šé…æ—¶æ£€æŸ¥å…¶å­èŠ‚ç‚¹ï¼Œå…¶å­èŠ‚ç‚¹å¯èƒ½æœ‰é€šé…ï¼Œ
+	å¯¹å­é€šé…èŠ‚ç‚¹è¿˜éœ€è¦æ£€æŸ¥å…¶å­èŠ‚ç‚¹ä¸­æœ‰æ— å’Œå½“å‰è¾“å…¥å­—ç¬¦åŒ¹é…çš„ï¼Œå¦‚æœæœ‰ï¼Œè¿˜éœ€è¦æ·»åŠ çŠ¶æ€
 	
-	¶ÔÃ¿¸ö×´Ì¬£¬enter_pos¼ÇÂ¼ÁË½øÈë¸Ã×´Ì¬µÄÊäÈë×Ö·ûÎ»ÖÃ
+	å¯¹æ¯ä¸ªçŠ¶æ€ï¼Œenter_posè®°å½•äº†è¿›å…¥è¯¥çŠ¶æ€çš„è¾“å…¥å­—ç¬¦ä½ç½®
 */
 static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm_state* state, M_sint32 key_pos, M_slist* add_list, M_slist* remove_list)
 {
@@ -817,15 +817,15 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 		if( rm_process_wc_child(root, handle, state, key_pos, add_list) < 0 )
 			return -1;
 
-		//Í¨Åä½Úµãpos³ÉÔ±ÎŞÒâÒå£¬Ê¼ÖÕÊÇ0
-		//leave_posÊ¼ÖÕ±Èkey_pos´ó1¡£×ÔÔöleave_pos£¬±íÊ¾Í¨Åä½ÚµãÆ¥Åäµ±Ç°ÊäÈë×Ö·û³É¹¦
+		//é€šé…èŠ‚ç‚¹posæˆå‘˜æ— æ„ä¹‰ï¼Œå§‹ç»ˆæ˜¯0
+		//leave_poså§‹ç»ˆæ¯”key_poså¤§1ã€‚è‡ªå¢leave_posï¼Œè¡¨ç¤ºé€šé…èŠ‚ç‚¹åŒ¹é…å½“å‰è¾“å…¥å­—ç¬¦æˆåŠŸ
 		//++state->leave_pos;
 	}
 	else
 	{
 		if(state->pos == state->rm_stub->skey_len)
 		{
-			//Èç¹ûÓĞÍ¨Åä×Ó½Úµã£¬Ö±½Ó´´½¨ĞÂ×´Ì¬¼ÓÈë¡£ĞÂ¼ÓÈë×´Ì¬²»Æ¥ÅäÈÎºÎ×Ö·û(enter_pos = leave_pos)
+			//å¦‚æœæœ‰é€šé…å­èŠ‚ç‚¹ï¼Œç›´æ¥åˆ›å»ºæ–°çŠ¶æ€åŠ å…¥ã€‚æ–°åŠ å…¥çŠ¶æ€ä¸åŒ¹é…ä»»ä½•å­—ç¬¦(enter_pos = leave_pos)
 			if(state->rm_stub->wc_node)
 			{
 				if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
@@ -834,7 +834,7 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 				slist_insert(add_list, &new_state->tmp_stub);
 				//printf("add state at keypos %d, %s(%d, 0x%p) for wildcard\n", key_pos, state->rm_stub->wc_node->skey, state->rm_stub->wc_node->skey_len, state->rm_stub->wc_node);
 
-				//Èç¹ûÆä¸¸½Úµã´æÔÚÍ¨Åä£¬½«Æä´Ó×´Ì¬Á´±íÖĞÕªÈ¥
+				//å¦‚æœå…¶çˆ¶èŠ‚ç‚¹å­˜åœ¨é€šé…ï¼Œå°†å…¶ä»çŠ¶æ€é“¾è¡¨ä¸­æ‘˜å»
 				p = new_state->parent;
 				while(p && !rm_is_wildcard(root, p->rm_stub))
 					p = p->parent;
@@ -844,7 +844,7 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 					//printf("remove state at keypos %d, %s(%d, 0x%p) for dup wildcard\n", key_pos, p->rm_stub->skey, p->rm_stub->skey_len, p->rm_stub);
 				}
 
-				//ÓÃµ±Ç°×Ö·ûÆ¥ÅäĞÂÍ¨ÅäµÄ×Ó½Úµã£¬¿´ÓĞÎŞÆ¥Åä
+				//ç”¨å½“å‰å­—ç¬¦åŒ¹é…æ–°é€šé…çš„å­èŠ‚ç‚¹ï¼Œçœ‹æœ‰æ— åŒ¹é…
 				if( rm_process_wc_child(root, handle, new_state, key_pos, add_list) < 0 )
 					return -1;
 			}
@@ -872,7 +872,7 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 		}
 		else
 		{
-			//Èç¹ûÏÂÒ»¸ö×Ö·ûÆ¥Åä³É¹¦£¬pos++£¬·ñÔòÒÆ³ıµ±Ç°×´Ì¬
+			//å¦‚æœä¸‹ä¸€ä¸ªå­—ç¬¦åŒ¹é…æˆåŠŸï¼Œpos++ï¼Œå¦åˆ™ç§»é™¤å½“å‰çŠ¶æ€
 			if(!cmp_key_rmt(&state->rm_stub->skey[state->pos << root->ele_pow], 
 				&key[key_pos << root->ele_pow], (M_rmt_root*)root))
 			{
@@ -893,7 +893,7 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 }
 
 /*
-	Æ¥ÅäÏÂÒ»¸ö×Ö·û
+	åŒ¹é…ä¸‹ä¸€ä¸ªå­—ç¬¦
 */
 static INLINE M_sint32	rm_match_char(M_rm_root* root, M_rm_handle* handle, M_sint32 key_pos)
 {
@@ -933,22 +933,22 @@ static INLINE M_sint32	rm_match_char(M_rm_root* root, M_rm_handle* handle, M_sin
 }
 
 /*
-	ÊÂÊµÉÏ£¬Æ¥Åä¹ì¼£ÖĞÖ»ĞèÒª¼ÇÂ¼Í¨Åä·û¶ÔÓ¦µÄ¶Î¼´¿É
-	Ò»´ÎÆ¥Åä°´ÒÔÏÂÂß¼­¹¤×÷£º£¨½ö¹©²Î¿¼£¬×îÖÕÊµÏÖºÍÕâÀïÃèÊöµÄ²»ÍêÈ«Ò»Ñù£©
-	1. Èç¹ûradix mataÖĞµÄÏÂÒ»¸ö½Úµã²»ÊÇÍ¨Åä
-		a. Èç¹û¸Ã½ÚµãºÍÊäÈë´®ÖĞÏÂÒ»¸ö×Ö·ûÏàÍ¬£¬¼ÌĞøÍùÏÂ
-		b. Èç¹û¸Ã½ÚµãºÍÊäÈë´®ÖĞÏÂÒ»¸ö×Ö·û²»Í¬£¬»ØËİµ½×î½üµÄÒ»¸öÍ¨Åä½Úµã£¬È¡ÏûÆä³ö¿Ú×Ö·û£»
-		   Èç¹ûÎŞ×î½üÍ¨Åä½Úµã£¬Æ¥ÅäÊ§°ÜÍË³ö
-	2. Èç¹ûradix mataÖĞµÄÏÂÒ»¸ö½ÚµãÊÇÍ¨Åä£¬¼ÇÂ¼ÏÂ½øÈëÕâ¸öÍ¨Åä½ÚµãµÄÊäÈë´®×Ö·û¡£
-		a. ¼ì²éÊÇÍ¨Åä½Úµã·ñvalid½Úµã¡£Èç¹ûvalid£¬Æ¥Åä½áÊø
-		b. Èç¹ûÍ¨Åä½Úµã²»ÊÇvalidµÄ£¬¶ÔÊäÈë´®ºóĞø×Ö·û¼ìË÷ÊÇ·ñÓĞ³ö¿Ú
-			1. Èç¹ûÓĞ³ö¿Ú£¬³öÈ¥£¬¼ÇÂ¼ÏÂÊäÈë´®ÔÚ¸ÃÍ¨Åä½ÚµãµÄ³ö¿Ú×Ö·û
-			2. Èç¹ûÃ»ÓĞ³ö¿Ú£¬¼ÌĞøÍ£ÁôÔÚÍ¨Åä½Úµã´¦
-	3. Èç¹ûÊäÈë´®ÊäÈëÍê±Ï£¬¼ì²éµ±Ç°Í£Áô½ÚµãÊÇ·ñvalid£¬Èç¹ûvalid£¬Æ¥Åä³É¹¦£¬·ñÔòÆ¥ÅäÊ§°Ü
+	äº‹å®ä¸Šï¼ŒåŒ¹é…è½¨è¿¹ä¸­åªéœ€è¦è®°å½•é€šé…ç¬¦å¯¹åº”çš„æ®µå³å¯
+	ä¸€æ¬¡åŒ¹é…æŒ‰ä»¥ä¸‹é€»è¾‘å·¥ä½œï¼šï¼ˆä»…ä¾›å‚è€ƒï¼Œæœ€ç»ˆå®ç°å’Œè¿™é‡Œæè¿°çš„ä¸å®Œå…¨ä¸€æ ·ï¼‰
+	1. å¦‚æœradix mataä¸­çš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹ä¸æ˜¯é€šé…
+		a. å¦‚æœè¯¥èŠ‚ç‚¹å’Œè¾“å…¥ä¸²ä¸­ä¸‹ä¸€ä¸ªå­—ç¬¦ç›¸åŒï¼Œç»§ç»­å¾€ä¸‹
+		b. å¦‚æœè¯¥èŠ‚ç‚¹å’Œè¾“å…¥ä¸²ä¸­ä¸‹ä¸€ä¸ªå­—ç¬¦ä¸åŒï¼Œå›æº¯åˆ°æœ€è¿‘çš„ä¸€ä¸ªé€šé…èŠ‚ç‚¹ï¼Œå–æ¶ˆå…¶å‡ºå£å­—ç¬¦ï¼›
+		   å¦‚æœæ— æœ€è¿‘é€šé…èŠ‚ç‚¹ï¼ŒåŒ¹é…å¤±è´¥é€€å‡º
+	2. å¦‚æœradix mataä¸­çš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹æ˜¯é€šé…ï¼Œè®°å½•ä¸‹è¿›å…¥è¿™ä¸ªé€šé…èŠ‚ç‚¹çš„è¾“å…¥ä¸²å­—ç¬¦ã€‚
+		a. æ£€æŸ¥æ˜¯é€šé…èŠ‚ç‚¹å¦validèŠ‚ç‚¹ã€‚å¦‚æœvalidï¼ŒåŒ¹é…ç»“æŸ
+		b. å¦‚æœé€šé…èŠ‚ç‚¹ä¸æ˜¯validçš„ï¼Œå¯¹è¾“å…¥ä¸²åç»­å­—ç¬¦æ£€ç´¢æ˜¯å¦æœ‰å‡ºå£
+			1. å¦‚æœæœ‰å‡ºå£ï¼Œå‡ºå»ï¼Œè®°å½•ä¸‹è¾“å…¥ä¸²åœ¨è¯¥é€šé…èŠ‚ç‚¹çš„å‡ºå£å­—ç¬¦
+			2. å¦‚æœæ²¡æœ‰å‡ºå£ï¼Œç»§ç»­åœç•™åœ¨é€šé…èŠ‚ç‚¹å¤„
+	3. å¦‚æœè¾“å…¥ä¸²è¾“å…¥å®Œæ¯•ï¼Œæ£€æŸ¥å½“å‰åœç•™èŠ‚ç‚¹æ˜¯å¦validï¼Œå¦‚æœvalidï¼ŒåŒ¹é…æˆåŠŸï¼Œå¦åˆ™åŒ¹é…å¤±è´¥
 
-	×îÖÕÊä³ö½á¹ûÖĞ£¬¼ÇÂ¼ËùÓĞÆ¥Åä³É¹¦µÄ¹æÔòµÄÒ¶×Ó½Úµã£¬¼°Â·¾¶ÉÏ¸÷Í¨ÅäµÄÈë¿Ú¡¢³ö¿Ú×Ö·û
+	æœ€ç»ˆè¾“å‡ºç»“æœä¸­ï¼Œè®°å½•æ‰€æœ‰åŒ¹é…æˆåŠŸçš„è§„åˆ™çš„å¶å­èŠ‚ç‚¹ï¼ŒåŠè·¯å¾„ä¸Šå„é€šé…çš„å…¥å£ã€å‡ºå£å­—ç¬¦
 
-	rm_matchµÄÆ¥ÅäÊÇÖğ×Ö·û½øĞĞµÄ£¬¶ø²»ÊÇÒÔ½ÚµãÎªµ¥Î»¡£Ä¿µÄÊÇ±£Ö¤ËùÓĞ×´Ì¬µÄ½ø¶ÈÒ»ÖÂ
+	rm_matchçš„åŒ¹é…æ˜¯é€å­—ç¬¦è¿›è¡Œçš„ï¼Œè€Œä¸æ˜¯ä»¥èŠ‚ç‚¹ä¸ºå•ä½ã€‚ç›®çš„æ˜¯ä¿è¯æ‰€æœ‰çŠ¶æ€çš„è¿›åº¦ä¸€è‡´
 */
 
 M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
@@ -976,14 +976,14 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 	{
 		if(t->wc_node)
 		{
-			//Èç¹ûÓĞÍ¨Åä×Ó½Úµã£¬Ö±½Ó´´½¨ĞÂ×´Ì¬¼ÓÈë¡£ĞÂ¼ÓÈë×´Ì¬²»Æ¥ÅäÈÎºÎ×Ö·û(enter_pos = leave_pos)
+			//å¦‚æœæœ‰é€šé…å­èŠ‚ç‚¹ï¼Œç›´æ¥åˆ›å»ºæ–°çŠ¶æ€åŠ å…¥ã€‚æ–°åŠ å…¥çŠ¶æ€ä¸åŒ¹é…ä»»ä½•å­—ç¬¦(enter_pos = leave_pos)
 			if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
 				return -1;
 			rm_state_init(state, NULL, t->wc_node, 0, key_pos);
 			dlist_append(&handle->match_head, &state->match_stub);
 			//printf("add state at keypos %d, %s(%d, 0x%p) for root wildcard\n", key_pos, t->wc_node->skey, t->wc_node->skey_len, t);
 
-			//ÓÃµ±Ç°×Ö·ûÆ¥ÅäĞÂÍ¨ÅäµÄ×Ó½Úµã£¬¿´ÓĞÎŞÆ¥Åä
+			//ç”¨å½“å‰å­—ç¬¦åŒ¹é…æ–°é€šé…çš„å­èŠ‚ç‚¹ï¼Œçœ‹æœ‰æ— åŒ¹é…
 			if( rm_process_wc_child(root, handle, state, key_pos, &add_list) < 0 )
 				return -1;
 
@@ -1006,14 +1006,14 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 	{
 		if(rm_is_wildcard(root, t))
 		{
-			//Èç¹ûÓĞÍ¨Åä×Ó½Úµã£¬Ö±½Ó´´½¨ĞÂ×´Ì¬¼ÓÈë¡£ĞÂ¼ÓÈë×´Ì¬²»Æ¥ÅäÈÎºÎ×Ö·û(enter_pos = leave_pos)
+			//å¦‚æœæœ‰é€šé…å­èŠ‚ç‚¹ï¼Œç›´æ¥åˆ›å»ºæ–°çŠ¶æ€åŠ å…¥ã€‚æ–°åŠ å…¥çŠ¶æ€ä¸åŒ¹é…ä»»ä½•å­—ç¬¦(enter_pos = leave_pos)
 			if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
 				return -1;
 			rm_state_init(state, NULL, t, 0, key_pos);
 			dlist_append(&handle->match_head, &state->match_stub);
 			//printf("add state at keypos %d, %s(%d, 0x%p) for root wildcard\n", key_pos, t->skey, t->skey_len, t);
 
-			//ÓÃµ±Ç°×Ö·ûÆ¥ÅäĞÂÍ¨ÅäµÄ×Ó½Úµã£¬¿´ÓĞÎŞÆ¥Åä
+			//ç”¨å½“å‰å­—ç¬¦åŒ¹é…æ–°é€šé…çš„å­èŠ‚ç‚¹ï¼Œçœ‹æœ‰æ— åŒ¹é…
 			if( rm_process_wc_child(root, handle, state, key_pos, &add_list) < 0 )
 				return -1;
 
@@ -1022,7 +1022,7 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 		}
 		else
 		{
-			//Èç¹ûÏÂÒ»¸ö×Ö·ûÆ¥Åä³É¹¦£¬pos++£¬·ñÔòÒÆ³ıµ±Ç°×´Ì¬
+			//å¦‚æœä¸‹ä¸€ä¸ªå­—ç¬¦åŒ¹é…æˆåŠŸï¼Œpos++ï¼Œå¦åˆ™ç§»é™¤å½“å‰çŠ¶æ€
 			if(!cmp_key_rmt(t->skey, key, (M_rmt_root*)root))
 			{
 				if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
@@ -1042,14 +1042,14 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 	}
 
 	slist_init(&add_list);
-	//¼ì²é¸÷Í£Áô×´Ì¬ÊÇ·ñºÏ·¨£¬²¢Îª¸÷Í¨Åä½Úµã¼ÆËãÆ¥Åä³¤¶È
+	//æ£€æŸ¥å„åœç•™çŠ¶æ€æ˜¯å¦åˆæ³•ï¼Œå¹¶ä¸ºå„é€šé…èŠ‚ç‚¹è®¡ç®—åŒ¹é…é•¿åº¦
 	match_stub = handle->match_head.next;
 	while(match_stub != &handle->match_head)
 	{
 		state = container_of(match_stub, M_rm_state, match_stub);
 		match_stub = match_stub->next;
 
-		if(rm_is_wildcard(root, state->rm_stub))	//Í¨Åä½ÚµãÃ»ÓĞÆ¥Åä³¤¶ÈÒ»Ëµ
+		if(rm_is_wildcard(root, state->rm_stub))	//é€šé…èŠ‚ç‚¹æ²¡æœ‰åŒ¹é…é•¿åº¦ä¸€è¯´
 		{
 			if(!rt_valid((M_rt_stub*)state->rm_stub))
 				dlist_remove(&handle->match_head, &state->match_stub);
@@ -1060,7 +1060,7 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 				dlist_remove(&handle->match_head, &state->match_stub);
 			else
 			{
-				//Èç¹ûÆäÓĞ¸öÍ¨Åä×Ó½Úµã£¬ÇÒ¸ÃÍ¨Åä×Ó½Úµãvalid£¬¸Ã¹æÔòÆ¥Åä³É¹¦¡£ĞèÒªÔÚÆ¥Åä½á¹ûÖĞ¼ÓÉÏ¸ÃÍ¨Åä×Ó½Úµã
+				//å¦‚æœå…¶æœ‰ä¸ªé€šé…å­èŠ‚ç‚¹ï¼Œä¸”è¯¥é€šé…å­èŠ‚ç‚¹validï¼Œè¯¥è§„åˆ™åŒ¹é…æˆåŠŸã€‚éœ€è¦åœ¨åŒ¹é…ç»“æœä¸­åŠ ä¸Šè¯¥é€šé…å­èŠ‚ç‚¹
 				t = state->rm_stub->wc_node;
 				if(t && rt_valid((M_rt_stub*)t))
 				{

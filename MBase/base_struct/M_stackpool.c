@@ -19,6 +19,9 @@ INLINE void	sp_init(void* mem, M_sint32 mem_size, M_stackpool* sp)
 #ifdef __M_CFG_POOL_LEAK
 	memset(mem, 0, mem_size);
 #endif
+#ifdef _DEBUG
+	sp->max_ptr = sp->cur_ptr;
+#endif
 }
 
 INLINE void	sp_destroy(M_stackpool* sp)

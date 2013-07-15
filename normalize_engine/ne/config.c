@@ -22,7 +22,7 @@
 
 	由于需要分配空间，所以必须有release_config方法
 */
-int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg)
+int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg, void (*default_cfg)(void* cfgs))
 {
 	FILE *fp = NULL;
 	char buf[LINE_SIZE]; //缓冲区数组
@@ -91,6 +91,10 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 		//置0的目的是为了方便后面读配置时跟踪配置项的位置
 		get_set_cfg(cfg, i)->nr_sets = 0;
 	}
+
+	//设置默认配置
+	if(default_cfg)
+		default_cfg(cfg);
 
 	//逐个读入各组配置
 	line_nr = 0;

@@ -1,10 +1,10 @@
-/* 
+ï»¿/* 
 	M_radix_mata.h : a radix-tree-like structure, support wildcard to mimic multi-regular expression matching..
 
 	key difference to normal radix tree:
 
 	1.	element in radix mata are not single char only, could be multi-chars
-	2.	wildcard is supported£¬ so there could be several matching results to one input
+	2.	wildcard is supportedï¼Œ so there could be several matching results to one input
 	3.	matching result contains not only which rules are matched, but also where there are matched
 		that means matching result needs dynamic memory allocation. stack pool is applied in matching
 		to simplify memory management. i.e. user should provide a memory chunk, organized as a stackpool
@@ -166,6 +166,8 @@ MBASE_API	void		rm_init_root(M_rm_root* root, M_sint32 ele_size, M_sint8* wildca
 MBASE_API	void		rm_init_node(M_rm_root* root, M_rm_stub* node, M_sint8* key, M_sint32 key_len);
 MBASE_API	M_sint32	rm_is_wildcard(M_rm_root* root, M_rm_stub* stub);
 
+MBASE_API	M_rm_stub*	rm_insert_node(M_rmt_root* root, M_rt_stub* insert_node, M_rt_arg* arg, void* rule);
+
 /*
 	2 pools are used here:
 	pool: persistent pool, new node inserted to radix mata will be alloced here
@@ -238,14 +240,13 @@ MBASE_API	void		rm_init_handle(M_rm_handle* handle, void* mem_chunk, M_sintptr m
 // pattern must be added in order
 MBASE_API	M_sint32	rm_add_pattern(M_rm_handle* handle, M_rm_root* root, M_sint8* pat);
 
-MBASE_API	M_rm_stub*	rm_insert_node(M_rmt_root* root, M_rt_stub* insert_node, M_rt_arg* arg, void* rule);
-
 // rm_insert_rule: to simplify creating radix_mata...
 // when user needs to create a radix mata, he could call rmt_init_handle and rmt_add_pattern first
 // with a pre-alloced memory chunk(for temporary use)
 // after handle is created over, then call rmt_insert_rule to build radix mata
 // after rmt_insert_rule is called, temporary memory(mem_chunk of rmt_init_handle) could be released
-// the reason why rmt_stub is necessary as a parameter, is that user could have a bigger structure that contains rmt_stub
+// the reason why rm_stub is necessary as a parameter, is that user could have a bigger structure that contains rm_stub
+// btw: this function is not tested...
 MBASE_API	M_sint32	rm_insert_rule(M_rm_root* root, M_rm_handle* handle, M_rm_stub* rm_stub, void* rule,
 	M_malloc_t mem_alloc, M_free_t mem_free, void* pool);
 

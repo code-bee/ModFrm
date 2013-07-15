@@ -19,6 +19,26 @@ typedef union p
 #endif
 } p_t;
 
+INLINE	void M_snprintf(M_sint8* str, M_size_t size, const M_sint8* format, ...)
+{
+	va_list ap;
+	M_sint32 n;
+
+	if(size < 1)
+		return;
+
+	va_start(ap, format);
+#ifdef __M_CFG_OS_WINDOWS
+	_vsnprintf(str, size, format, ap);
+	str[size-1] = 0;
+#elif defined(__M_CFG_OS_LINUX)
+	vsnprintf(str, size, format, ap);
+#else
+	#error "not supported OS!"
+#endif
+	va_end(ap);
+}
+
 INLINE	void M_swap(void* s1, void* s2, M_sintptr len)
 {
 	p_t p1, p2;
