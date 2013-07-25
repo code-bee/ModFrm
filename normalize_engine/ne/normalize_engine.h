@@ -10,6 +10,8 @@
 #include "config.h"
 #include "acsmx2.h"
 
+//#define _DEBUG_PRINT
+
 /*
 	整体流程
 	1. 读入配置
@@ -213,6 +215,7 @@ typedef struct st_rule
 {
 	M_sint32		nr_ori_wc;		//number of wildcards in match_rule
 	M_sint32		nr_rm_wc;		//number of wildcards in rm_rule
+	M_sint32		leading_grp;	//group id of first group
 	wc_info_t*		ori_wc_arr;		//array of ori wildcard, has nr_ori_wc entries
 	rm_wc_info_t*	rm_wc_arr;		//wc array, has nr_rm_wc entries, for looking nr_wc up in match_rules
 	M_slist			nm_head;		//info of normal rule
@@ -233,13 +236,13 @@ typedef struct st_acmata
 typedef struct st_normalize_engine
 {
 	acmata_t	acmata;			//ac mata
-	
 	M_rm_root	rm_tree;
 	M_sint8*	head_grps;		//group array, 1 means corresponding group can be head-group, 0 otherwise, only valid when flow_mode is false
 	M_sint8*	tail_grps;		//group array, 1 means corresponding group can be tail-group, 0 otherwise. 
 	rule_t*		rules;			//rule array
 	M_sint32	nr_rules;		//number of rules
 	void*		memory;			//memory block that ne model layes in
+	pattern_t**	seg_pat;		//keep seg delim pattern here. 
 	M_sint8		default_grp;	//index of default group
 	M_sint8		disorder_seg;	//1 if exists seg without order, 0 otherwise
 	M_sint16	rm_depth;		//depth of radix mata tree
@@ -256,40 +259,53 @@ typedef struct st_normalize_engine
 normalize_engine_t*	build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size);
 M_sint32	destroy_normalize_engine(normalize_engine_t* model);
 
+typedef struct st_range_result
+{
+	M_slist				list_stub;
+	M_rm_result_node*	range_result[4];	//分别存储各个类型通配的对应范围
+	rule_t*				matched_rule;
+} range_result_t;
 
-typedef struct st_match_ac
+typedef struct st_match_handle
 {
 	// 这一组三个变量为通用变量，一次初始化，后面无需再变动
 	M_stackpool tpool;			
 	normalize_engine_t*	model;
 	ne_cfg_t*	cfg;
 
-	// 这一组三个变量内部在匹配AC时使用。初始化时为pattern_arr分配内存，之后只修改值
-	M_dlist		pat_head;		// 记录AC匹配时各string pattern的信息，沿用delim_pos_t结构
 	M_dlist		delim_head;		// 记录AC匹配时各分隔符的位置信息
-	M_sint32	nr_pos;			// pattern_arr的有效长度
-	pattern_t**	pattern_arr;	// rm匹配时构造的数组。数组长度为model->rm_depth
+	M_sint32	nr_delims;
+	//mat_delim_t	match_delim;
 
 	M_sint8*	back_mem;		// 记录以上变量初始化完毕后tpool的位置，便于回退。也在初始化时设定
 	
 	// 这一组变量在每次查询时都需要调整，归一化结果在dst_str中返回，匹配的规则在matched_rule中返回，状态在status中返回
 	// 如果正常，status为0；如果不能匹配，status为-1；如果多个匹配，status为成功匹配的数目，且matched_rule和dst_str_len
 	// 都记录匹配成功的规则编号
-	M_sint8*	src_str;
-	M_sint32	src_str_len;
-	M_sint8*	dst_str;
-	M_sint32	dst_str_len;
-	M_sint32	matched_rule;
+	//M_sint8*	src_str;
+	//M_sint32	src_str_len;
+	M_rm_handle*	handle;
+	M_dlist			rm_result;
+	delim_pos_t*	left_dummy[2];		//表示左边边界的dummy delim pos，下标决定是valid还是invalid
+	delim_pos_t*	right_dummy[2];		//表示右边边界的dummy delim pos，下标决定是valid还是invalid
+	//M_rm_result_node*	range_result;	//分别存储各个类型通配的对应范围，每个rule都有自己的一个数组
+	M_slist		result_head;
+	//M_sint8*	dst_str;
+	//M_sint32	dst_str_len;
+	M_sint32	nr_matched_rules;
 	M_sint32	status;
-} match_ac_t;
+} match_handle_t;
 
-match_ac_t*	create_match_arg(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size);
-void		set_match_arg(match_ac_t* match_ac, M_sint8* src_str, M_sint32 src_str_len);
+match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size);
+void			destroy_match_handle(match_handle_t* handle);
+void			set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_str_len);
 
 /*
-	返回match_ac->status
+	返回match_handle->status
 */
-M_sint32	normalize_string(match_ac_t* match_ac);
+M_sint32	normalize_string(match_handle_t* match_handle);
+M_sint32	get_normalize_rule_count(match_handle_t* match_handle);
+M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, rule_t** rule, M_sint32* str_len);
 
 /*
 	3. 待处理串匹配，归一化阶段

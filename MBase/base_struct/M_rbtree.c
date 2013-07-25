@@ -129,43 +129,54 @@ M_bst_stub* bst_search(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t ge
 M_bst_stub* bst_search_gt(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t get_key)
 {
 	M_sint32 cmp = 0;
-	M_bst_stub* s = t;
+	M_bst_stub* s = NULL;
 
 	while(t)
 	{
 		cmp = cmp_key(key, get_key(t));
-		s = t;
 		if(!cmp)
 			return t;
+		else if(cmp < 0)
+		{
+			s = t;
+			t = t->left;
+		}
 		else
-			t = cmp < 0 ? t->left : t->right;
+			t = t->right;
 	}
 
-	if(s)
-		return bst_successor(s);
-	else
-		return NULL;
+	return s;
+
+	//if(s)
+	//	return bst_successor(s);
+	//else
+	//	return NULL;
 }
 
 M_bst_stub* bst_search_lt(M_bst_stub* t, void* key, cmp_key_t cmp_key, get_key_t get_key)
 {
 	M_sint32 cmp = 0;
-	M_bst_stub* s = t;
+	M_bst_stub* s = NULL;
 
 	while(t)
 	{
 		cmp = cmp_key(key, get_key(t));
-		s = t;
 		if(!cmp)
 			return t;
+		else if(cmp < 0)
+			t = t->left;
 		else
-			t = cmp < 0 ? t->left : t->right;
+		{
+			s = t;
+			t = t->right;
+		}
 	}
+	return s;
 
-	if(s)
-		return bst_predecessor(s);
-	else
-		return NULL;
+	//if(s)
+	//	return bst_predecessor(s);
+	//else
+	//	return NULL;
 }
 
 void bst_insert_node(M_bst_stub** root, M_bst_stub* x, cmp_key_t cmp_key, get_key_t get_key)

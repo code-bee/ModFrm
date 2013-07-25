@@ -511,7 +511,7 @@ void	rm_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
 }
 
 /*
-	split stub at position i
+	split stub after position i
 
 	for example:
 
@@ -671,19 +671,49 @@ void*		rm_alloc(M_sint32 size, M_rt_pool* pool)
 		return pi_alloc(size, &pool->valid_pool);
 }
 
-void		rm_init_handle(M_rm_handle* handle, void* mem_chunk, M_sintptr mem_size, rm_branch_t rm_branch)
+M_rm_handle*	rm_init_handle(M_sint8* mem_chunk, M_sintptr mem_size, rm_branch_t rm_branch)
 {
+	M_stackpool* spool = (M_stackpool*)mem_chunk;
+	M_rm_handle* handle;
+
+	if(sizeof(M_stackpool) + sizeof(M_rm_handle) > mem_size)
+		return NULL;
+
+	sp_init(mem_chunk + sizeof(M_stackpool), mem_size - sizeof(M_stackpool), spool);
+	handle = (M_rm_handle*)sp_alloc(sizeof(M_rm_handle), spool);
+
 	handle->input_len = 0;
 	handle->input_array = NULL;
-	sp_init(mem_chunk, mem_size, &handle->spool);
+	handle->spool = spool;
+	
 	slist_init(&handle->input_head);
 	dlist_init(&handle->match_head);
 	handle->judge = rm_branch;
+
+	return handle;
 }
 
-M_sint32	rm_add_pattern(M_rm_handle* handle, M_rm_root* root, M_sint8* pat)
+M_rm_handle*	rm_init_handle_bypool(M_stackpool* spool, rm_branch_t rm_branch)
 {
-	M_rm_input* input_node = (M_rm_input*)sp_alloc(sizeof(M_rm_input), &handle->spool);
+	M_rm_handle* handle;
+
+	if( !(handle = (M_rm_handle*)sp_alloc(sizeof(M_rm_handle), spool)) )
+		return NULL;
+
+	handle->input_len = 0;
+	handle->input_array = NULL;
+	handle->spool = spool;
+	
+	slist_init(&handle->input_head);
+	dlist_init(&handle->match_head);
+	handle->judge = rm_branch;
+
+	return handle;
+}
+
+M_sint32	rm_handle_insert_pattern(M_rm_handle* handle, M_rm_root* root, M_sint8* pat)
+{
+	M_rm_input* input_node = (M_rm_input*)sp_alloc(sizeof(M_rm_input), handle->spool);
 	if(!input_node)
 		return -1;
 
@@ -693,9 +723,18 @@ M_sint32	rm_add_pattern(M_rm_handle* handle, M_rm_root* root, M_sint8* pat)
 	return 0;
 }
 
+void	rm_handle_insert_string(M_rm_handle* handle, M_sint8* str, M_sint32 str_len)
+{
+	handle->input_array = str;
+	handle->input_len = str_len;
+	dlist_init(&handle->match_head);
+}
+
 M_rm_stub*	rm_insert_node(M_rmt_root* root, M_rm_stub* insert_node, M_rt_arg* arg, void* rule)
 {
 	insert_node->rule = rule;
+	insert_node->wc_node = NULL;
+	
 	return (M_rm_stub*)rmt_insert_node(root, (M_rt_stub*)insert_node, arg);
 }
 
@@ -748,7 +787,7 @@ M_sint32	rm_insert_rule(M_rm_root* root, M_rm_handle* handle, M_rm_stub* rm_stub
 static INLINE void	rm_state_init(M_rm_state* state, M_rm_state* parent, M_rm_stub* rm_stub, M_sint32 pos, M_sint32 key_pos)
 {
 	state->enter_pos = key_pos;
-	state->match_len = pos;
+	state->nr_child_states = 0;
 	state->rm_stub = rm_stub;
 	state->parent = parent;
 	state->pos = pos;
@@ -770,13 +809,13 @@ static INLINE M_sint32	rm_process_wc_child(M_rm_root* root, M_rm_handle* handle,
 	{
 		if(!handle->judge || !handle->judge(state->rm_stub, t))
 		{
-			if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+			if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 				return -1;
 			rm_state_init(new_state, state, t, 1, key_pos);
-
 			slist_insert(add_list, &new_state->tmp_stub);
-			++state->match_len;
-			//printf("add state at keypos %d, %s(%d, 0x%p) for childmatch of wildcard\n", key_pos, t->skey, t->skey_len, t);
+			++state->nr_child_states;
+
+			//printf("++%p nr_childs: %d\n", state, state->nr_child_states);
 		}
 	}
 
@@ -790,9 +829,24 @@ static INLINE	void	rm_remove_state(M_rm_root* root, M_rm_state* state, M_slist* 
 		p = p->parent;
 
 	if(p)
-		--p->match_len;
+	{
+		--p->nr_child_states;
+		//printf("--%p nr_childs: %d\n", p, p->nr_child_states);
+	}
+	
+	if(!state->tmp_stub.next)
+		slist_insert(remove_list, &state->tmp_stub);
+}
 
-	slist_insert(remove_list, &state->tmp_stub);
+static INLINE void	rm_insert_state(M_rm_handle* handle, M_rm_state* state)
+{
+	dlist_append(&handle->match_head, &state->match_stub);
+	state->tmp_stub.next = NULL;
+	
+	//if(*state->rm_stub->skey)
+	//	printf("add %p\n", state);
+	//else
+	//	printf("add %p, nr_childs: %d\n", state, state->nr_child_states);
 }
 
 /*
@@ -810,7 +864,7 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 {
 	M_rm_stub*	t = NULL;
 	M_sint8*	key = handle->input_array;
-	M_rm_state	*new_state, *p;
+	M_rm_state	*new_state, *p/*, *p1*/;
 
 	if(rm_is_wildcard(root, state->rm_stub))
 	{
@@ -818,8 +872,6 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 			return -1;
 
 		//通配节点pos成员无意义，始终是0
-		//leave_pos始终比key_pos大1。自增leave_pos，表示通配节点匹配当前输入字符成功
-		//++state->leave_pos;
 	}
 	else
 	{
@@ -828,23 +880,21 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 			//如果有通配子节点，直接创建新状态加入。新加入状态不匹配任何字符(enter_pos = leave_pos)
 			if(state->rm_stub->wc_node)
 			{
-				if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+				if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 					return -1;
 				rm_state_init(new_state, state, state->rm_stub->wc_node, 0, key_pos);
 				slist_insert(add_list, &new_state->tmp_stub);
-				//printf("add state at keypos %d, %s(%d, 0x%p) for wildcard\n", key_pos, state->rm_stub->wc_node->skey, state->rm_stub->wc_node->skey_len, state->rm_stub->wc_node);
 
-				//如果其父节点存在通配，将其从状态链表中摘去
-				p = new_state->parent;
+				// 如果其父节点存在通配，将其从状态链表中摘去
+				// 必需要先处理父节点，不然父节点可能删不掉
+				p = state->parent;
 				while(p && !rm_is_wildcard(root, p->rm_stub))
 					p = p->parent;
-				if(p && !--p->match_len && !rt_valid((M_rt_stub*)p->rm_stub))
-				{
+				// 这里不需要--，因为这种情况下是加了一个通配再减去一个通配，对父节点来说nr_child_states没有变化
+				if(p && !/*--*/p->nr_child_states && !rt_valid((M_rt_stub*)p->rm_stub) && !p->tmp_stub.next)
 					slist_insert(remove_list, &p->tmp_stub);
-					//printf("remove state at keypos %d, %s(%d, 0x%p) for dup wildcard\n", key_pos, p->rm_stub->skey, p->rm_stub->skey_len, p->rm_stub);
-				}
 
-				//用当前字符匹配新通配的子节点，看有无匹配
+				// 用当前字符匹配新通配的子节点，看有无匹配
 				if( rm_process_wc_child(root, handle, new_state, key_pos, add_list) < 0 )
 					return -1;
 			}
@@ -853,42 +903,26 @@ static INLINE M_sint32	rm_match_state(M_rm_root* root, M_rm_handle* handle, M_rm
 			{
 				if(!handle->judge || !handle->judge(state->rm_stub, t))
 				{
-					++state->match_len;
 					state->rm_stub = t;
 					state->pos = 1;
-					//printf("match successfully at keypos %d, %s(%d, 0x%p) for branch match\n", key_pos, state->rm_stub->skey, state->rm_stub->skey_len, state->rm_stub);
 				}
 				else
-				{
 					rm_remove_state(root, state, remove_list);
-					//printf("remove state at keypos %d, %s(%d, 0x%p) for judge fail\n", key_pos, state->rm_stub->skey, state->rm_stub->skey_len, state->rm_stub);
-				}
 			}
 			else
-			{
 				rm_remove_state(root, state, remove_list);
-				//printf("remove state at keypos %d, %s(%d, 0x%p) for branch mismatch\n", key_pos, state->rm_stub->skey, state->rm_stub->skey_len, state->rm_stub);
-			}
 		}
 		else
 		{
 			//如果下一个字符匹配成功，pos++，否则移除当前状态
 			if(!cmp_key_rmt(&state->rm_stub->skey[state->pos << root->ele_pow], 
 				&key[key_pos << root->ele_pow], (M_rmt_root*)root))
-			{
 				++state->pos;
-				++state->match_len;
-				//printf("match succesfully at key_pos %d, %s(%d, 0x%p) for node match\n", key_pos, state->rm_stub->skey, state->rm_stub->skey_len, state->rm_stub);
-			}
 			else
-			{
 				rm_remove_state(root, state, remove_list);
-				//printf("remove state at keypos %d, %s(%d, 0x%p) for mismatch\n", key_pos, state->rm_stub->skey, state->rm_stub->skey_len, state->rm_stub);
-			}
 		}
 	}
 
-	//++(*key_pos);
 	return 0;
 }
 
@@ -905,8 +939,11 @@ static INLINE M_sint32	rm_match_char(M_rm_root* root, M_rm_handle* handle, M_sin
 	slist_init(&add_list);
 	slist_init(&remove_list);
 
+	//printf("start insert/remove...\n");
+
 	while(list_stub != &handle->match_head)
 	{
+		state = container_of(list_stub, M_rm_state, match_stub);
 		if( rm_match_state(root, handle, container_of(list_stub, M_rm_state, match_stub), key_pos, &add_list, &remove_list) < 0 )
 			return -1;
 		list_stub = list_stub->next;
@@ -916,18 +953,23 @@ static INLINE M_sint32	rm_match_char(M_rm_root* root, M_rm_handle* handle, M_sin
 	while(tmp_stub != &add_list)
 	{
 		state = container_of(tmp_stub, M_rm_state, tmp_stub);
-		dlist_insert(&handle->match_head, &state->match_stub);
 		tmp_stub = tmp_stub->next;
+		rm_insert_state(handle, state);
 	}
 
 	tmp_stub = remove_list.next;
 	while(tmp_stub != &remove_list)
 	{
 		state = container_of(tmp_stub, M_rm_state, tmp_stub);
-		dlist_remove(&handle->match_head, &state->match_stub);
+		//if(*state->rm_stub->skey)
+		//	printf("remove %p\n", state);
+		//else
+		//	printf("remove %p, nr_childs: %d\n", state, state->nr_child_states);
 		tmp_stub = tmp_stub->next;
+		dlist_remove(&handle->match_head, &state->match_stub);
 	}
 
+	//printf("end insert/remove...\n\n");
 
 	return 0;
 }
@@ -965,10 +1007,14 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 	if(!t)
 		return 0;
 
-	if( !(handle->input_array = (M_sint8*)sp_alloc(handle->input_len << root->ele_pow, &handle->spool)) )
-		return -1;
-	rm_convert_inputlist(handle, root, handle->input_array);
+	if(!handle->input_array)
+	{
+		if( !(handle->input_array = (M_sint8*)sp_alloc(handle->input_len << root->ele_pow, handle->spool)) )
+			return -1;
+		rm_convert_inputlist(handle, root, handle->input_array);
+	}
 	key = handle->input_array;
+
 
 	slist_init(&add_list);
 
@@ -977,28 +1023,26 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 		if(t->wc_node)
 		{
 			//如果有通配子节点，直接创建新状态加入。新加入状态不匹配任何字符(enter_pos = leave_pos)
-			if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+			if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 				return -1;
 			rm_state_init(state, NULL, t->wc_node, 0, key_pos);
-			dlist_append(&handle->match_head, &state->match_stub);
-			//printf("add state at keypos %d, %s(%d, 0x%p) for root wildcard\n", key_pos, t->wc_node->skey, t->wc_node->skey_len, t);
+			rm_insert_state(handle, state);
 
 			//用当前字符匹配新通配的子节点，看有无匹配
 			if( rm_process_wc_child(root, handle, state, key_pos, &add_list) < 0 )
 				return -1;
 
 			if(add_list.next != &add_list)
-				dlist_append(&handle->match_head, &(container_of(add_list.next, M_rm_state, tmp_stub)->match_stub));
+				rm_insert_state(handle, container_of(add_list.next, M_rm_state, tmp_stub));
 		}
 		if( (t = (M_rm_stub*)search_branch((M_rmt_root*)root, (M_rt_stub*)t, &key[key_pos << root->ele_pow])) )
 		{
 			if(!handle->judge || !handle->judge(root->root, t))
 			{
-				if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+				if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 					return -1;
 				rm_state_init(state, NULL, t, 1, key_pos);
-				dlist_append(&handle->match_head, &state->match_stub);
-				//printf("add state at keypos %d, %s(%d, 0x%p) for root branchmatch\n", key_pos, t->skey, t->skey_len, t);
+				rm_insert_state(handle, state);
 			}
 		}
 	}
@@ -1007,29 +1051,27 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 		if(rm_is_wildcard(root, t))
 		{
 			//如果有通配子节点，直接创建新状态加入。新加入状态不匹配任何字符(enter_pos = leave_pos)
-			if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+			if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 				return -1;
 			rm_state_init(state, NULL, t, 0, key_pos);
-			dlist_append(&handle->match_head, &state->match_stub);
-			//printf("add state at keypos %d, %s(%d, 0x%p) for root wildcard\n", key_pos, t->skey, t->skey_len, t);
+			rm_insert_state(handle, state);
 
 			//用当前字符匹配新通配的子节点，看有无匹配
 			if( rm_process_wc_child(root, handle, state, key_pos, &add_list) < 0 )
 				return -1;
 
 			if(add_list.next != &add_list)
-				dlist_append(&handle->match_head, &(container_of(add_list.next, M_rm_state, tmp_stub)->match_stub));
+				rm_insert_state(handle, container_of(add_list.next, M_rm_state, tmp_stub));
 		}
 		else
 		{
 			//如果下一个字符匹配成功，pos++，否则移除当前状态
 			if(!cmp_key_rmt(t->skey, key, (M_rmt_root*)root))
 			{
-				if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+				if( !(state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 					return -1;
 				rm_state_init(state, NULL, t, 1, key_pos);
-				dlist_append(&handle->match_head, &state->match_stub);
-				//printf("add state at keypos %d, %s(%d, 0x%p) for root match\n", key_pos, t->skey, t->skey_len, t);
+				rm_insert_state(handle, state);
 			}
 		}
 	}
@@ -1037,7 +1079,8 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 
 	while(key_pos < handle->input_len)
 	{
-		rm_match_char(root, handle, key_pos);
+		if(rm_match_char(root, handle, key_pos) < 0)
+			return -1;
 		++key_pos;
 	}
 
@@ -1064,7 +1107,7 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 				t = state->rm_stub->wc_node;
 				if(t && rt_valid((M_rt_stub*)t))
 				{
-					if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), &handle->spool)) )
+					if( !(new_state = (M_rm_state*)sp_alloc(sizeof(M_rm_state), handle->spool)) )
 						return -1;
 					rm_state_init(new_state, state, t, 0, key_pos);
 					slist_insert(&add_list, &new_state->tmp_stub);
@@ -1082,41 +1125,48 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 	while(add_stub != &add_list)
 	{
 		state = container_of(add_stub, M_rm_state, tmp_stub);
-		dlist_append(&handle->match_head, &state->match_stub);
+		rm_insert_state(handle, state);
+		//dlist_append(&handle->match_head, &state->match_stub);
+		//state->tmp_stub.next = NULL;
 		add_stub = add_stub->next;
 	}
 
 	return 0;
 }
 
-M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res)
+M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res)
 {
 	M_dlist*	list_stub = handle->match_head.next;
 	M_rm_state*	state;
 	M_rm_result_node*	result_node;
 	M_rm_result*		match_result;
-	M_sint32	enter_pos = 0;
+	M_sint32	enter_pos;
 	M_rm_stub*	rm_stub;
 
-	slist_init(match_res);
+	dlist_init(match_res);
 
 	while(list_stub != &handle->match_head)
 	{
-		if( !(match_result = (M_rm_result*)sp_alloc(sizeof(M_rm_result), &handle->spool)) )
+		if( !(match_result = (M_rm_result*)sp_alloc(sizeof(M_rm_result), handle->spool)) )
 			return -1;
 		slist_init(&match_result->res_head);
-		slist_insert(match_res, &match_result->match_stub);
+		dlist_insert(match_res, &match_result->match_stub);
+		match_result->nr_wcs = 0;
+		enter_pos = 0;
 
-		state = container_of(list_stub, M_rm_state, match_stub);
+		if( (state = container_of(list_stub, M_rm_state, match_stub)) )
+			match_result->rule = state->rm_stub->rule;
+
 		while(state)
 		{
 			if(rm_is_wildcard(root, state->rm_stub))
 			{
-				if( !(result_node = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node), &handle->spool)) )
+				if( !(result_node = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node), handle->spool)) )
 					return -1;
 				result_node->enter_pos = state->enter_pos;
 				result_node->leave_pos = enter_pos ? enter_pos : handle->input_len;
 				slist_insert(&match_result->res_head, &result_node->res_stub);
+				++match_result->nr_wcs;
 			}
 			else
 				enter_pos = state->enter_pos;
@@ -1127,7 +1177,7 @@ M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_re
 	return 0;
 }
 
-M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res)
+M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res)
 {
 	M_dlist*	list_stub = handle->match_head.next;
 	M_rm_state*	state;
@@ -1137,15 +1187,16 @@ M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_slist* ma
 	M_sint32	first_flag = 1;
 	M_rm_stub*	rm_stub;
 
-	slist_init(match_res);
+	dlist_init(match_res);
 
 	while(list_stub != &handle->match_head)
 	{
-		if( !(match_result = (M_rm_result*)sp_alloc(sizeof(M_rm_result), &handle->spool)) )
+		if( !(match_result = (M_rm_result*)sp_alloc(sizeof(M_rm_result), handle->spool)) )
 			return -1;
 		
 		slist_init(&match_result->res_head);
-		slist_insert(match_res, &match_result->match_stub);
+		dlist_insert(match_res, &match_result->match_stub);
+		match_result->nr_wcs = 0;
 		first_flag = 1;
 
 		if( (state = container_of(list_stub, M_rm_state, match_stub)) )
@@ -1153,13 +1204,16 @@ M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_slist* ma
 
 		while(state)
 		{
-			if( !(result_node = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node), &handle->spool)) )
+			if( !(result_node = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node), handle->spool)) )
 				return -1;
 			result_node->enter_pos = state->enter_pos;
 			result_node->leave_pos = first_flag ? handle->input_len : enter_pos;
 			slist_insert(&match_result->res_head, &result_node->res_stub);
-			enter_pos = state->enter_pos;
+			
+			if(rm_is_wildcard(root, state->rm_stub))
+				++match_result->nr_wcs;
 
+			enter_pos = state->enter_pos;
 			state = state->parent;
 			first_flag = 0;
 		}
@@ -1168,11 +1222,11 @@ M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_slist* ma
 	return 0;
 }
 
-void	rm_print_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res, M_sint32 print_rule, FILE* fp)
+void	rm_print_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res, get_key_t get_rule_str, FILE* fp)
 {
 	M_rm_result*		result;
 	M_rm_result_node*	result_node;
-	M_slist*			match_stub = match_res->next;
+	M_dlist*			match_stub = match_res->next;
 	M_slist*			result_stub;
 	M_sint32			i,j;
 
@@ -1180,8 +1234,11 @@ void	rm_print_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res, M
 	{
 		result = container_of(match_stub, M_rm_result, match_stub);
 		result_stub = result->res_head.next;
-		if(print_rule)
-			fprintf(fp, "rule: %s, ", result->rule);
+		if(get_rule_str)
+		{
+			fprintf(fp, "match rule:	%s\n", get_rule_str(result->rule));
+			fprintf(fp, "normal rule:	%s\n", *(M_sint8**)((M_sint8*)result->rule + 3*sizeof(M_sint32) + 4*sizeof(void*)));
+		}
 		while(result_stub != &result->res_head)
 		{
 			result_node = container_of(result_stub, M_rm_result_node, res_stub);

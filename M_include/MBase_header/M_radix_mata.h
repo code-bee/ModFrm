@@ -199,9 +199,9 @@ typedef	struct st_rm_input
 typedef struct st_rm_state
 {
 	M_dlist		match_stub;
-	M_slist		tmp_stub;					//new added, new removed node first linked here, then insert into match_list
+	M_slist		tmp_stub;					//new added, new removed node first linked here, then insert into M_rm_handle->match_head
 	M_sint32	enter_pos;					//pos relative to input string, keep position of input string that enters the state
-	M_sint32	match_len;					//record match length of normal pattern
+	M_sint32	nr_child_states;			//记录当前通配下面的状态数目，只对通配节点有效
 	M_rm_stub*	rm_stub;					//points to wildcard node of radix mata, for tracing back
 	M_sint32	pos;						//current matching position of rm_stub->skey
 	struct st_rm_state*	parent;				//parent state, must be wildcard node
@@ -212,33 +212,45 @@ typedef M_sint32	(*rm_branch_t)(M_rm_stub* parent, M_rm_stub* child);
 
 typedef struct st_rm_match_handle
 {
-	M_stackpool	spool;			//memory pool
-	M_slist		input_head;		//M_rm_input->list_stub list here
-	M_sint32	input_len;		//node counts of input list
-	M_sint8*	input_array;	//array version of input_head list
-	M_dlist		match_head;		//M_rm_state->match_stub list here
-	rm_branch_t	judge;			//a callback to judge a branch should be selected or not
+	M_stackpool*	spool;			//memory pool
+	M_slist			input_head;		//M_rm_input->list_stub list here
+	M_sint32		input_len;		//node counts of input list
+	M_sint8*		input_array;	//array version of input_head list
+	M_dlist			match_head;		//M_rm_state->match_stub list here
+	rm_branch_t		judge;			//a callback to judge a branch should be selected or not
 } M_rm_handle;
 
 typedef struct st_rm_result_node
 {
 	M_slist		res_stub;
+	//void*		wildcard;			// points to corresponding wildcard. in fact, it is only used in normalize engine
 	M_sint32	enter_pos;
 	M_sint32	leave_pos;
 } M_rm_result_node;
 
 typedef struct st_rm_result
 {
-	M_slist		match_stub;
+	M_dlist		match_stub;
 	M_slist		res_head;
 	void*		rule;
+	M_sint32	nr_wcs;
 } M_rm_result;
 
 //a callback might be added in future...
-MBASE_API	void		rm_init_handle(M_rm_handle* handle, void* mem_chunk, M_sintptr mem_size, rm_branch_t rm_branch);
+
+/*
+	虽然handle和handle的stackpool都在mem_chunk中，和其他的stackpool有一点不一样，
+	但是由于mem_chunk是外面传入的，只要释放mem_chunk就好
+*/
+MBASE_API	M_rm_handle*	rm_init_handle(M_sint8* mem_chunk, M_sintptr mem_size, rm_branch_t rm_branch);
+MBASE_API	M_rm_handle*	rm_init_handle_bypool(M_stackpool* spool, rm_branch_t rm_branch);
 
 // pattern must be added in order
-MBASE_API	M_sint32	rm_add_pattern(M_rm_handle* handle, M_rm_root* root, M_sint8* pat);
+MBASE_API	M_sint32	rm_handle_insert_pattern(M_rm_handle* handle, M_rm_root* root, M_sint8* pat);
+
+// insert a total string once, not step by step by calling rm_handle_insert_pattern
+// be careful that str_len is strlen(str)/root->ele_size, if str is NULL terminated
+MBASE_API	void	rm_handle_insert_string(M_rm_handle* handle, M_sint8* str, M_sint32 str_len);
 
 // rm_insert_rule: to simplify creating radix_mata...
 // when user needs to create a radix mata, he could call rmt_init_handle and rmt_add_pattern first
@@ -257,13 +269,13 @@ MBASE_API	M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle);
 // rm_parse_result only parses result for wildcard, 
 // while rm_parse_total_result parese result for both wildcard and normal patterns
 // NOTE: multi match_results may happen to same rule
-MBASE_API	M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res);
-MBASE_API	M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res);
+MBASE_API	M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res);
+MBASE_API	M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res);
 
 // print result parsed by parse_match_result, for test only, only valid when rule is 0 terminated string
 // print_rule: 0 -- not print rule
 //			   1 -- print rule, only valid if rule is 0 terminated string
-MBASE_API	void		rm_print_result(M_rm_root* root, M_rm_handle* handle, M_slist* match_res, M_sint32 print_rule, FILE* fp);
+MBASE_API	void		rm_print_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res, get_key_t get_rule_str, FILE* fp);
 
 #ifdef __cplusplus
 }

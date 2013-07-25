@@ -4073,6 +4073,11 @@ M_sint32	UT_radix_multichar_pool()
 
 #define FIX 1
 
+static void* get_rule(void* rule)
+{
+	return rule;
+}
+
 M_sint32	UT_radix_mata()
 {
 	M_sint32 ret = 1;
@@ -4180,11 +4185,11 @@ M_sint32	UT_radix_mata()
 
 	FILE* fp = fopen("D:\\radixtree.txt", "w+");
 
-	M_rm_handle handle;
-	M_stackpool	handle_pool;
+	M_rm_handle* handle;
+	//M_stackpool	handle_pool;
 	M_sint8*	handle_memory = malloc(1024*1024);
 
-	rm_init_handle(&handle, handle_memory, 1024*1024, NULL);
+	handle = rm_init_handle(handle_memory, 1024*1024, NULL);
 
 	sp_init(mem_chunk, 1024*1024, &tmp_sp);
 
@@ -4349,18 +4354,18 @@ M_sint32	UT_radix_mata()
 
 	}
 
-	rm_add_pattern(&handle, &root, "10");
-	rm_add_pattern(&handle, &root, "20");
-	rm_add_pattern(&handle, &root, "30");
-	//rm_add_pattern(&handle, &root, "30");
-	rm_add_pattern(&handle, &root, "40");
-	rm_match(&root, &handle);
+	rm_handle_insert_pattern(handle, &root, "10");
+	rm_handle_insert_pattern(handle, &root, "20");
+	rm_handle_insert_pattern(handle, &root, "30");
+	//rm_handle_insert_pattern(&handle, &root, "30");
+	rm_handle_insert_pattern(handle, &root, "40");
+	rm_match(&root, handle);
 	
-	//rm_parse_result(&root, &handle, &match_res);
-	//rm_print_result(&root, &handle, &match_res);
+	rm_parse_result(&root, handle, &match_res);
+	rm_print_result(&root, handle, &match_res, get_rule, stdout);
 
-	rm_parse_total_result(&root, &handle, &match_total_res);
-	rm_print_result(&root, &handle, &match_total_res, 1, stdout);
+	//rm_parse_total_result(&root, handle, &match_total_res);
+	//rm_print_result(&root, handle, &match_total_res, get_rule, stdout);
 
 	c2 = clock();
 	printf("\nneed %d ms\n", c2 - c1);
