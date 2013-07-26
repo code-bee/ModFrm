@@ -560,10 +560,6 @@ static INLINE M_sint32	parse_group_delim(ne_cfg_t* cfg, normalize_engine_t* mode
 static INLINE M_sint32	parse_delims(normalize_engine_t* model, ne_cfg_t* cfg, ne_arg_t* ne_arg/*, pattern_t* seg_pat*/)
 {
 	M_sint32 i = 0;
-	pattern_t*	pat;
-	
-	//ne_arg->seg_pat = seg_pat;
-	//memset(ne_arg->seg_pat, 0, sizeof(pattern_t*)*cfg->cfg_group_t_nr_sets);
 
 	//将所有的delim加入到radix tree中
 	for(i=0; i<cfg->cfg_group_t_nr_sets; ++i)
@@ -572,8 +568,6 @@ static INLINE M_sint32	parse_delims(normalize_engine_t* model, ne_cfg_t* cfg, ne
 			goto out;
 		//if(!strcmp(cfg->cfg_common_t_cfgs->default_group, cfg->cfg_group_t_cfgs[i].name))
 		//	model->default_grp = i;
-		//if(model->head_grps[i])
-		//	++model->nr_head_grps;
 	}
 	return 0;
 
@@ -586,41 +580,36 @@ out:
 	1. default group必需支持以^开头，以$结尾
 	2. 如果有多个group支持以^开头，其end flag必不相同
 */
-static INLINE M_sint32	check_delims(normalize_engine_t* model, M_sint32 nr_grps)
-{
-	M_sint32 i, j, k;
-	if(!model->head_grps[model->default_grp] || !model->tail_grps[model->default_grp])
-		return -1;
-
-	for(i=0; i<nr_grps; ++i)
-	{
-		if(model->head_grps[i])
-		{
-			for(j=i; j<nr_grps; ++j)
-			{
-				if(model->head_grps[j])
-				{
-					//TODO..
-				}
-			}
-		}
-	}
-
-	return 0;
-}
+//static INLINE M_sint32	check_delims(normalize_engine_t* model, M_sint32 nr_grps)
+//{
+//	M_sint32 i, j;
+//	if(!model->head_grps[model->default_grp] || !model->tail_grps[model->default_grp])
+//		return -1;
+//
+//	for(i=0; i<nr_grps; ++i)
+//	{
+//		if(model->head_grps[i])
+//		{
+//			for(j=i; j<nr_grps; ++j)
+//			{
+//				if(model->head_grps[j])
+//				{
+//					//TODO..
+//				}
+//			}
+//		}
+//	}
+//
+//	return 0;
+//}
 
 static INLINE M_sint32 add_wildcard(ne_arg_t* ne_arg, pattern_t* wc_pat, M_sint8* wildcard, M_sint16 wc_type)
 {
-	M_sint32 j;
 	wc_pat->type = PT_WILDCARD;
 	//当类型为wildcard时，delim_type直接用来代表wildcard的type，不再另外分配空间
 	wc_pat->delim_type = (M_sint16*)wc_type;
 	wc_pat->str = wildcard;
 	wc_pat->str_len = strlen(wildcard);
-
-	////设置escape_chars
-	//for(j=0; j<wc_pat->str_len; ++j)
-	//	model->escape_chars[wc_pat->str[j]] = 1;
 
 	if( acsmAddPattern2(ne_arg->ac.ac_handle, wc_pat->str, wc_pat->str_len, 1, 0, 0, 0, wc_pat, 0) != 0 )
 		return -1;
@@ -754,7 +743,7 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 	M_dlist*		grp_head = delim_stub;
 	M_dlist			*start_stub, *end_stub;
 	delim_pos_t*	delim_pos;
-	M_sint32		i, j;
+	M_sint32		i;
 	M_sint8*		candi_grps;
 	M_sint32		nr_candi_grps = 0;
 	M_sint32		nr_grps = cfg->cfg_group_t_nr_sets;
@@ -776,7 +765,7 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 
 	*root = NULL;
 
-	if( slist_empty(&match_delim->delim_head) )
+	if( dlist_empty(&match_delim->delim_head) )
 	{
 		match_delim->leading_grp = model->default_grp;
 		return 0;
@@ -1365,9 +1354,9 @@ static INLINE M_dlist*	insert_seg(M_dlist*	leading_delim_stub, string_seg_t* str
 {
 	//M_sint32		seg_len;
 	delim_pos_t*	insert_delim_pos = string_seg->delim_pos;
-	delim_pos_t		*next_delim_pos, *wc_pos;
+	delim_pos_t		*wc_pos;
 	M_sint32		pos_shift = *dst_pos - insert_delim_pos->pos;
-	M_dlist			*wc_stub, *delim_stub;
+	M_dlist			*wc_stub;
 	M_dlist*		wc_list = (M_dlist*)&insert_delim_pos->rbt_stub;
 	M_dlist			*wc_start, *wc_end;
 	
@@ -1919,10 +1908,6 @@ static INLINE M_sint32	complete_rm_wc_info(rm_wc_info_t* rm_wc_info, mat_delim_t
 static INLINE rm_wc_info_t*	set_wc_info(wc_info_t* wc_info, delim_pos_t* wc_pos, normalize_engine_t* model, mat_delim_t* match_delim, ne_cfg_t* cfg, 
 	rm_wc_info_t*	last_rm_wc_info, /*M_sint32 is_merged, */rule_t* rule)
 {
-	M_bst_stub		*pre_stub, *post_stub;
-	delim_pos_t		*pre_delim, *post_delim;
-	wc_info_t		*pre_wc_info;
-	rm_wc_info_t	*rm_wc_info;
 	delim_pos_t		*left, *right;
 	M_sint32 ret;
 
@@ -2203,11 +2188,11 @@ static INLINE M_sint32 insert_radix_mata(M_sint8* str, M_sint32 str_len, normali
 {
 	M_rm_stub*		rm_stub;
 
-	if( !(rm_stub = rm_alloc(sizeof(M_rm_stub), &ne_arg->rm_pool)) )
+	if( !(rm_stub = (M_rm_stub*)rm_alloc(sizeof(M_rm_stub), &ne_arg->rm_pool)) )
 		return -1;
 	rm_init_node(&model->rm_tree, rm_stub, str, str_len);
 	rm_process_arg(&ne_arg->rm_pool, &ne_arg->rm_arg);
-	rm_insert_node(&model->rm_tree, rm_stub, &ne_arg->rm_arg, rule);
+	rm_insert_node((M_rmt_root*)&model->rm_tree, rm_stub, &ne_arg->rm_arg, rule);
 
 	return 0;
 }
@@ -2215,16 +2200,12 @@ static INLINE M_sint32 insert_radix_mata(M_sint8* str, M_sint32 str_len, normali
 static INLINE M_sint32 create_radix_mata(normalize_engine_t* model, rule_t* rule, ne_arg_t* ne_arg)
 {
 	rm_wc_info_t*	rm_wc_info = rule->rm_wc_arr;
-	wc_info_t*		wc_info;
 	M_sint8*		buf;
-//	pattern_t**		pat_arr;		// NULL表示通配，非空表示pat
-//	M_sint32		nr_pats = 0;
 	M_sint32		i;
 	M_sint32		str_len = strlen(rule->match_rule);
 	M_sint32		pos = 0;
 	M_sint32		start_pos = 0;
 	M_sint32		end_pos = 0;
-	//M_rm_stub*		rm_stub;
 
 	if( !(buf = (M_sint8*)sp_alloc(sizeof(M_sint8) * (str_len + 1), &ne_arg->spool)) )
 		return -1;
@@ -2308,7 +2289,6 @@ static INLINE void print_normal_rule(rule_t* rule)
 	M_sint8			buf[1024];
 	M_slist*		nm_stub = rule->nm_head.next;
 	normal_info_t*	nm_node;
-	delim_pos_t*	wc_pos;
 	M_sint32		cur_pos = 0;
 
 	while(nm_stub != &rule->nm_head)
@@ -2441,21 +2421,16 @@ loop:
 
 normalize_engine_t*		build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size)
 {
-	M_sint32 i = 0;
-	pattern_t*	pat;
-	ne_arg_t	ne_arg;
+	M_sint32			i = 0;
+	ne_arg_t			ne_arg;
+	pattern_t*			wc_pat;
 	normalize_engine_t* model;
-	pattern_t*	wc_pat;
-	//pattern_t*	seg_pat;
 
 	if( ne_arg_init(&ne_arg, *memory_size, cfg->cfg_group_t_nr_sets) < 0 )
 		return NULL;
 
 	if( !(wc_pat = (pattern_t*)sp_alloc(sizeof(pattern_t)*NR_WILDCARD, &ne_arg.tpool)) )
 		goto out;
-
-	//if( !(seg_pat = (pattern_t*)sp_alloc(sizeof(pattern_t)*ne_arg.nr_grps, &ne_arg.spool)) )
-	//	goto out;
 
 	if( !(model = (normalize_engine_t*)sp_alloc(sizeof(normalize_engine_t), &ne_arg.spool)) )
 		goto out;
@@ -2473,8 +2448,8 @@ normalize_engine_t*		build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size
 	if( parse_delims(model, cfg, &ne_arg/*, seg_pat*/) < 0 )
 		goto out;
 
-	if( check_delims(model, cfg->cfg_group_t_nr_sets ) < 0 )
-		goto out;
+	//if( check_delims(model, cfg->cfg_group_t_nr_sets ) < 0 )
+	//	goto out;
 
 	if( add_wildcards(&ne_arg, wc_pat, cfg) < 0 )
 		goto out;
@@ -2514,7 +2489,7 @@ out:
 	return NULL;
 }
 
-M_sint32	destroy_normalize_engine(normalize_engine_t* model)
+void	destroy_normalize_engine(normalize_engine_t* model)
 {
 	if(model->acmata.ac_handle)
 		acsmFree2(model->acmata.ac_handle);
@@ -2701,7 +2676,7 @@ static INLINE void	match_delim_init(mat_delim_t* match_delim, match_handle_t* ma
 static INLINE M_sint32 process_string_segorder(mat_delim_t* match_delim, ne_cfg_t* cfg, normalize_engine_t* model, M_stackpool* tpool, M_bst_stub** root)
 {
 	M_sint8*	buf;
-	M_sint32	i = match_delim->leading_grp, j, k;
+	M_sint32	i = match_delim->leading_grp, j;
 	M_sint32	start_pos, end_pos, dst_pos;
 	M_sint32	pos_shift = 0;
 
@@ -2711,7 +2686,7 @@ static INLINE M_sint32 process_string_segorder(mat_delim_t* match_delim, ne_cfg_
 	string_seg_t*	delim_pos_arr;	// 从match_delim中取出分隔符后筛选有效的放在这个数组中
 	M_sint32		nr_pos;			// delim_pos_arr数组的有效长度
 	M_dlist			delim_head;
-	pattern_t		*head_pat, *replace_pat;
+	pattern_t		*head_pat;
 	M_sint32		seg_pos;
 	M_sint32		next_grp;
 	M_sint32		is_start;		// 标记head_delim_pos的类型
@@ -3088,7 +3063,6 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 	delim_info_t*	delim_info;
 	wc_info_t*		wc_info;
 	M_sint32		end_pos, i, j;
-	M_sint32		delim_shift;
 	M_sint32		reverse = 0;
 
 	//start_pos = arg->spos;
@@ -3406,12 +3380,10 @@ static INLINE M_sint32 check_rm_wc(check_arg_t* arg, M_rm_result_node* match_wc,
 	M_sint32	grp;
 	M_bst_stub*	rbt_stub;
 	M_dlist		*list_stub, *bak_list_stub = NULL;
-	M_rm_result_node* ori_wc_node;
 	M_dlist		*left_stub, *right_stub;
 	M_sint32	left_type, right_type;
 
 	delim_pos_t	*delim_pos;
-	M_bst_stub* delim_stub;
 
 	dlist_init(&arg->group_delim_head);
 

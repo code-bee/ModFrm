@@ -161,7 +161,7 @@ M_sint32	M_tls_delete(M_tls_key key)
 	}
 
 	bst_free_all(&(kt->root), tls_node_destroyer, (void*)kt->destroyer);
-	kt->destroyer = (void*)(-1);
+	kt->destroyer = (free_t)(-1);
 
 	atomic_rwunlock(&s_tls.rwlock);
 	

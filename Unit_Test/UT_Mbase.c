@@ -2198,6 +2198,7 @@ void reg_mem_free(void* mem)
 void rt_stub_free(M_rt_stub* rt_stub, void* pool)
 {
 	void* mem = container_of(rt_stub, rt_ut_arg_t, rt_stub);
+	pool = pool;
 	//printf("freeing %s(%d)\n", rt_stub->skey, rt_stub->skey_len);
 	if(rt_valid(rt_stub))
 	{
@@ -3870,7 +3871,7 @@ M_sint32	UT_radix_multichar_pool()
 #else
 			sprintf(str[j], "%s", s[j]);
 #endif
-			nodes[j] = rm_alloc(sizeof(rm_ut_arg_t), &pool);
+			nodes[j] = (rm_ut_arg_t*)rm_alloc(sizeof(rm_ut_arg_t), &pool);
 			reg_mem_alloc(&nodes[j]->rt_stub);
 			nodes[j]->key = (M_sint8*)&(str[j]);
 			rm_init_node(&root, &nodes[j]->rt_stub, nodes[j]->key, strlen(nodes[j]->key)/2);
@@ -3884,7 +3885,7 @@ M_sint32	UT_radix_multichar_pool()
 				reg_mem_alloc(extra_arg.dummy_node);
 			extra_alloc = 0;
 			
-			dup_tmp = rmt_insert_node(&root, &nodes[j]->rt_stub, &extra_arg);
+			dup_tmp = rmt_insert_node((M_rmt_root*)&root, (M_rt_stub*)&nodes[j]->rt_stub, &extra_arg);
 			if(dup_tmp)
 			{
 				nodes[j]->rt_stub.parent = dup_nodes;

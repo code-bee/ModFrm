@@ -498,7 +498,7 @@ void	rm_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
 {
 	if(!extra_arg->dummy_node)
 	{
-		extra_arg->dummy_node = (M_rm_stub*)rt_alloc(sizeof(M_rm_stub), pool);
+		extra_arg->dummy_node = (M_rt_stub*)rt_alloc(sizeof(M_rm_stub), pool);
 		((M_rm_stub*)extra_arg->dummy_node)->wc_node = NULL;
 		M_b8_init(&extra_arg->dummy_node->flag);
 		set_rt_invalid(extra_arg->dummy_node);
@@ -771,7 +771,7 @@ M_sint32	rm_insert_rule(M_rm_root* root, M_rm_handle* handle, M_rm_stub* rm_stub
 	rm_convert_inputlist(handle, root, w_str);
 
 	rm_init_node(root, rm_stub, w_str, handle->input_len);
-	rm_stub = (M_rm_stub*)rm_insert_node((M_rmt_root*)root, (M_rt_stub*)rm_stub, &arg, rule);
+	rm_stub = (M_rm_stub*)rm_insert_node((M_rmt_root*)root, rm_stub, &arg, rule);
 
 	if(arg.dummy_node)
 		mem_free(arg.dummy_node, pool);
@@ -1141,7 +1141,6 @@ M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_re
 	M_rm_result_node*	result_node;
 	M_rm_result*		match_result;
 	M_sint32	enter_pos;
-	M_rm_stub*	rm_stub;
 
 	dlist_init(match_res);
 
@@ -1185,7 +1184,6 @@ M_sint32	rm_parse_total_result(M_rm_root* root, M_rm_handle* handle, M_dlist* ma
 	M_rm_result*		match_result;
 	M_sint32	enter_pos = 0;
 	M_sint32	first_flag = 1;
-	M_rm_stub*	rm_stub;
 
 	dlist_init(match_res);
 

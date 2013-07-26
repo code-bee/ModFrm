@@ -375,6 +375,7 @@ void bst_travel(M_bst_stub* root, traveller_t bst_traveller, void* param)
 
 static INLINE void bst_count_traveller(M_bst_stub* t, M_sint32* count)
 {
+	t = t;
 	++(*count);
 }
 

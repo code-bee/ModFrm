@@ -196,6 +196,7 @@ static INLINE M_sint32	frm_geterrno()
 static INLINE M_sint8*	frm_strerror(M_sint32 err_num)
 {
 	//TODO...  write a big switch/case for error description
+	err_num = err_num;
 	return NULL;
 }
 
@@ -207,13 +208,13 @@ static M_error_node	s_errs[M_ET_NUM] =
 	{frm_geterrno,		frm_strerror}		//module frame
 };
 
-static INLINE M_errno	get_tls_errno()
+static INLINE M_errno*	get_tls_errno()
 {
 	M_errno* err_data = (M_errno*)M_tls_get(M_tls_err_key);
 
 	if(!err_data)
 	{
-		if( !(err_data = malloc(sizeof(M_errno))) )
+		if( !(err_data = (M_errno*)malloc(sizeof(M_errno))) )
 			return NULL;
 
 		memset(err_data, 0, sizeof(M_errno));
@@ -224,7 +225,7 @@ static INLINE M_errno	get_tls_errno()
 		}
 	}
 
-	return *err_data;
+	return err_data;
 }
 
 M_sint32	M_seterrno(M_sint32	err_num)

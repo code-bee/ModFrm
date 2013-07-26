@@ -257,7 +257,7 @@ typedef struct st_normalize_engine
 	size of temporary memory is same with  memory_size
 */
 normalize_engine_t*	build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size);
-M_sint32	destroy_normalize_engine(normalize_engine_t* model);
+void				destroy_normalize_engine(normalize_engine_t* model);
 
 typedef struct st_range_result
 {
@@ -306,135 +306,6 @@ void			set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_s
 M_sint32	normalize_string(match_handle_t* match_handle);
 M_sint32	get_normalize_rule_count(match_handle_t* match_handle);
 M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, rule_t** rule, M_sint32* str_len);
-
-/*
-	3. 待处理串匹配，归一化阶段
-
-	过程：
-	1. 用AC状态机对象处理待匹配串，获得各个匹配结果
-	2. 初筛匹配结果，删除匹配不完整的规则
-	3. 利用分隔符的位置信息对待匹配串进行组、段分割
-	4. 进一步检查各匹配约束是否满足，删除不满足匹配约束的规则
-	5. 如果还剩下多条规则匹配成功（此时需要给出告警，供业务人员分析），选择优先级最高的规则。
-	   优先级内部设定，外部不可见。
-	   首先比较通配符的数目，通配符少的优先级高；然后比较通配符的精度，
-	   $通配符的精度高于*的通配精度，选择$通配数目多的规则
-	   如果还不能选择，不做处理
-	6. 找到合适的规则后，提取通配内容，生成归一化串
-*/
-
-/*
-	to wildcard element, at beginning, both str and str_len are 0
-	after processing, they are replaced by pointers to match_string,
-	so that a normalized string could be constructed
-*/
-typedef struct st_rule_ele
-{
-	M_slist		list_stub;
-	M_sint8*	str;
-	M_sint16	str_len;
-	M_sint16	type;		// normal string element, or wildcard element
-} rule_ele_t;
-
-typedef struct st_match_string
-{
-	M_sint8*	str;
-	M_sint32	str_len;
-	M_slist		ele_list;
-} match_string_t;
-
-
-#if 0
-
-/*
-	2. 解析配置，生成便于使用，高效的数据结构
-
-	a. 分析common组，然后用common组的信息解析group组
-		这里需要对各种边界字符进行转义：\t,\r等等
-	b. 对rule组的解析放在第3步做
-
-	具体做法：
-	将所有的组分隔符和段分隔符组织成一个AC，
-	规则串、归一串、待处理串首先都需要通过这个AC得到各个分隔符的位置
-
-	然后利用组规则、段规则解释这些分隔符，确定各个组、段的边界
-
-	组分隔符，段分隔符的两个约束：
-	1. 组分隔符与组内段分隔符必不相同
-	2. 除了1，分隔符可以相同，但不能存在嵌套关系
-
-	解析AC匹配结果时首先确定各组的边界，然后在组边界内部找段边界。组边界内部出现的非本组的段分隔符直接忽略
-
-*/
-
-/*
-	group_t按照配置定义的group顺序组织成链表，同时在链表头上提供default_group的指针
-*/
-typedef struct st_cfg_group group_t;
-
-typedef struct st_rule
-{
-	M_slist		list_head;
-	group_t*	default_group;
-} rule_t;
-
-/*
-	type: 记录该分隔符在对应grp中的类型：start/end/share，各占1位
-*/
-#define	DSTART	0x01
-#define DEND	0x02
-#define DSHARE	0x04
-typedef struct st_group_info
-{
-	M_slist		list_stub;
-	group_t*	grp;
-	M_sint32	type;
-} group_info_t;
-
-
-typedef struct st_seg_info
-{
-	M_slist		list_stub;
-	group_t*	grp;
-} seg_info_t;
-
-typedef struct st_delim
-{
-	M_rt_stub	rt_stub;
-	M_sint8*	delim;
-	M_slist		grp_list;
-	M_slist		seg_list;
-} delim_t;
-
-typedef struct st_delim_info
-{
-	M_rt_stub*	delim_root;
-} delim_info_t;
-
-typedef struct st_match_str_pos
-{
-	M_slist		next_pos;
-	seg_info_t*	seg;
-} match_str_pos_t;
-
-typedef struct st_match_str
-{
-	M_rt_stub	rt_stub;
-	M_slist		;
-	M_sint8*	str;
-	M_sint32	str_len;
-} match_str_t;
-
-typedef struct st_wildchars
-{
-	
-} wildchars_t;
-
-
-
-//M_sint32	build_delim_info(ne_cfg_t* cfg, delim_info_t* dinfo);
-//void free_delim_info(delim_info_t* dinfo);
-#endif
 
 #endif //__NORMALIZE_ENGINE_H__
 
