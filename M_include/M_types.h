@@ -71,7 +71,7 @@ typedef void			M_self;
 	typedef unsigned __int64	M_uint64;
 #else
 	typedef long long			M_sint64;
-	typedef unsigned long lont	M_uint64;
+	typedef unsigned long long	M_uint64;
 #endif
 
 #ifdef __M_CFG_OS64

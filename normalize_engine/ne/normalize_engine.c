@@ -53,7 +53,7 @@ static void set_default_config(ne_cfg_t* cfgs)
 	cfgs->cfg_common_t_cfgs->pattern_id_len = 1;
 }
 
-M_sint32 read_ne_config(char* filename, ne_cfg_t* cfgs)
+M_sint32 read_ne_config(M_sint8* filename, ne_cfg_t* cfgs)
 {
 	return read_config(filename, g_config, sizeof(g_config)/sizeof(config_t), cfgs, set_default_config);
 }
@@ -1313,6 +1313,7 @@ static INLINE M_sint32	rearrange_delim_pos(mat_delim_t* match_delim, M_dlist* de
 	{
 		wc_pos = container_of(wc_stub, delim_pos_t, list_stub);
 		wc_head = (M_dlist*)&delim_pos->rbt_stub;
+        dlist_init(wc_head);
 		while(wc_stub != &match_delim->wc_head && wc_pos->grp_id == grp)
 		{
 			dlist_remove(&match_delim->wc_head, &wc_pos->list_stub);

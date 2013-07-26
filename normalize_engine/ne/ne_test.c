@@ -129,14 +129,18 @@ int main(int argc, char* argv[])
 	M_sint32	memsize = 1024*1024, tmp_memory_size;
 	match_handle_t*	ac_arg;
 
+#ifdef __M_CFG_OS_LINUX
+	read_ne_config("normalize_engine.cfg", &cfg);
+#else
 	read_ne_config("..\\normalize_engine\\ne\\normalize_engine.cfg", &cfg);
+#endif
 	//read_ne_config("..\\normalize_engine\\ne\\a.txt", &cfg);
 	print_cfg(&cfg);
 
 
 	if(model = build_normalize_engine(&cfg, &memsize, &tmp_memory_size))
 	{
-		for(i = 0; i<100000; i++)
+		for(i = 0; i<1; i++)
 		{
 			ac_arg = create_match_handle(model, &cfg, 1024*10);
 

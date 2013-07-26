@@ -10,7 +10,7 @@
 #include "config.h"
 #include "acsmx2.h"
 
-//#define _DEBUG_PRINT
+#define _DEBUG_PRINT
 
 /*
 	整体流程

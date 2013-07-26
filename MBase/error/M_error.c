@@ -5,7 +5,7 @@
 	2012/12/09
 */
 
-#include "../Mbase_priv.h"
+#include "../MBase_priv.h"
 #include "MBase.h"
 
 #include <errno.h>

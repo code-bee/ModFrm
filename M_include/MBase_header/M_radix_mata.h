@@ -166,7 +166,7 @@ MBASE_API	void		rm_init_root(M_rm_root* root, M_sint32 ele_size, M_sint8* wildca
 MBASE_API	void		rm_init_node(M_rm_root* root, M_rm_stub* node, M_sint8* key, M_sint32 key_len);
 MBASE_API	M_sint32	rm_is_wildcard(M_rm_root* root, M_rm_stub* stub);
 
-MBASE_API	M_rm_stub*	rm_insert_node(M_rmt_root* root, M_rt_stub* insert_node, M_rt_arg* arg, void* rule);
+MBASE_API	M_rm_stub*	rm_insert_node(M_rmt_root* root, M_rm_stub* insert_node, M_rt_arg* arg, void* rule);
 
 /*
 	2 pools are used here:

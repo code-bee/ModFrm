@@ -8,6 +8,10 @@
 #include "../MBase_priv.h"
 #include "MBase.h"
 
+#ifdef __M_CFG_OS_LINUX
+#include <stdarg.h>
+#endif
+
 typedef union p
 {
 	M_sint8* p8;
