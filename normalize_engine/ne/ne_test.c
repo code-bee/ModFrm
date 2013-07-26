@@ -140,10 +140,9 @@ int main(int argc, char* argv[])
 
 	if(model = build_normalize_engine(&cfg, &memsize, &tmp_memory_size))
 	{
+		ac_arg = create_match_handle(model, &cfg, 1024*100);
 		for(i = 0; i<1; i++)
 		{
-			ac_arg = create_match_handle(model, &cfg, 1024*10);
-
 			set_match_handle(ac_arg, "xyz1", strlen("xyz1"));
 			normalize_string(ac_arg);
 			print_normal_result(ac_arg);
@@ -196,9 +195,9 @@ int main(int argc, char* argv[])
 			normalize_string(ac_arg);
 			print_normal_result(ac_arg);
 
-			destroy_match_handle(ac_arg);
 		}
 
+		destroy_match_handle(ac_arg);
 		destroy_normalize_engine(model);
 		//printf("%d\n", memsize);
 		memsize = 1024*1024;

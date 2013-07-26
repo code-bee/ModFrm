@@ -1,5 +1,8 @@
 ﻿
 #include "normalize_engine.h"
+#ifdef __M_CFG_OS_LINUX
+#include <ctype.h>
+#endif
 
 config_set_t g_common_config[] = 
 {
@@ -466,7 +469,6 @@ static INLINE M_sint32	parse_group_delim_string(M_sint8* delim_str, M_sint16 del
 	M_sint32		special_flag;
 	M_sint32		alloc_size = sizeof(M_sint16)*ne_arg->nr_grps;
 	M_sint32		alloc_mem = 1;
-	M_sint32		j = 0;
 	str_dedup_t*	str_dedup;
 	pattern_t*		dup_pat;
 
@@ -740,7 +742,6 @@ static INLINE delim_pos_t* get_group_head(M_dlist* head, M_dlist* list_stub, M_s
 static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool, ne_cfg_t* cfg, normalize_engine_t* model, M_bst_stub** root)
 {
 	M_dlist*		delim_stub = match_delim->delim_head.next;
-	M_dlist*		grp_head = delim_stub;
 	M_dlist			*start_stub, *end_stub;
 	delim_pos_t*	delim_pos;
 	M_sint32		i;
@@ -900,6 +901,9 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 		last_candi_grp = -1;
 	}
 
+    if(match_delim->leading_grp == -1)
+        match_delim->leading_grp = model->default_grp;
+
 	// 非流模式下，所有delim都遍历完成，检查$分隔符
 	if(!cfg->cfg_common_t_cfgs->flow_mode)
 	{
@@ -913,7 +917,7 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 			}
 		}
 		if(final_grps > 1)
-			printf("warning: %d last candidate groups occur to string: %s\n", match_delim->ori_str);
+			printf("warning: %d last candidate groups occur to string: %s\n", final_grps, match_delim->ori_str);
 		refresh_delim_pos(head_pos, container_of(match_delim->delim_head.prev, delim_pos_t, list_stub), last_candi_grp, 0);
 	}
 
@@ -1355,7 +1359,6 @@ static INLINE M_dlist*	insert_seg(M_dlist*	leading_delim_stub, string_seg_t* str
 	//M_sint32		seg_len;
 	delim_pos_t*	insert_delim_pos = string_seg->delim_pos;
 	delim_pos_t		*wc_pos;
-	M_sint32		pos_shift = *dst_pos - insert_delim_pos->pos;
 	M_dlist			*wc_stub;
 	M_dlist*		wc_list = (M_dlist*)&insert_delim_pos->rbt_stub;
 	M_dlist			*wc_start, *wc_end;
@@ -1716,7 +1719,6 @@ static INLINE void	set_normal_info(normal_info_t* normal_info, M_sint8* str, M_s
 
 static INLINE M_sint32 process_normal_rule(mat_delim_t* match_delim, ne_cfg_t* cfg, normalize_engine_t* model, rule_t* rule)
 {
-	M_sint32	i = 0;
 	mat_delim_t	match_delim_normal;
 
 	M_dlist*		wc_stub;
@@ -2468,8 +2470,8 @@ normalize_engine_t*		build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size
 	*memory_size = sp_hwm(&ne_arg.spool) > 0 ? sp_hwm(&ne_arg.spool) : ne_arg.spool.cur_ptr - ne_arg.spool.pool;
 	*tmp_memory_size = sp_hwm(&ne_arg.tpool) > 0 ? sp_hwm(&ne_arg.tpool) : ne_arg.tpool.cur_ptr - ne_arg.tpool.pool;
 #ifdef _DEBUG_PRINT
-	printf("%d/%d memory of spool, %d/%d memory of tpool\n", *memory_size, sp_hwm(&ne_arg.spool),
-		M_sint32(ne_arg.tpool.cur_ptr - ne_arg.tpool.pool), sp_hwm(&ne_arg.tpool));
+	printf("%d/%d memory of spool, %ld/%d memory of tpool\n", *memory_size, sp_hwm(&ne_arg.spool),
+		ne_arg.tpool.cur_ptr - ne_arg.tpool.pool, sp_hwm(&ne_arg.tpool));
 #endif
 	return model;
 

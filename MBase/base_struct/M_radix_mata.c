@@ -1235,7 +1235,11 @@ void	rm_print_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_res, g
 		if(get_rule_str)
 		{
 			fprintf(fp, "match rule:	%s\n", get_rule_str(result->rule));
+#ifdef __M_CFG_OS64
+			fprintf(fp, "normal rule:	%s\n", *(M_sint8**)((M_sint8*)result->rule + 4*sizeof(M_sint32) + 4*sizeof(void*)));
+#else
 			fprintf(fp, "normal rule:	%s\n", *(M_sint8**)((M_sint8*)result->rule + 3*sizeof(M_sint32) + 4*sizeof(void*)));
+#endif
 		}
 		while(result_stub != &result->res_head)
 		{
