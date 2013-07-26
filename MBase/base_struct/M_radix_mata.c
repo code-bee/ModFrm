@@ -474,13 +474,13 @@ void		rmt_free_all_p(M_rmt_root* root, M_rt_pool* rp)
 
 void	rm_init_root(M_rm_root* root, M_sint32 ele_size, M_sint8* wildcard)
 {
-	rmt_init_root(root, ele_size);
+	rmt_init_root((M_rmt_root*)root, ele_size);
 	memcpy(root->wildcard, wildcard, root->ele_size);
 }
 
 void	rm_init_node(M_rm_root* root, M_rm_stub* node, M_sint8* key, M_sint32 key_len)
 {
-	rmt_init_node(root, node, key, key_len);
+	rmt_init_node((M_rmt_root*)root, (M_rt_stub*)node, key, key_len);
 	node->wc_node = NULL;
 	node->rule = NULL;
 }
@@ -498,7 +498,7 @@ void	rm_process_arg(M_rt_pool* pool, M_rt_arg* extra_arg)
 {
 	if(!extra_arg->dummy_node)
 	{
-		extra_arg->dummy_node = rt_alloc(sizeof(M_rm_stub), pool);
+		extra_arg->dummy_node = (M_rm_stub*)rt_alloc(sizeof(M_rm_stub), pool);
 		((M_rm_stub*)extra_arg->dummy_node)->wc_node = NULL;
 		M_b8_init(&extra_arg->dummy_node->flag);
 		set_rt_invalid(extra_arg->dummy_node);
