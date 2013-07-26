@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #ifdef __M_CFG_OS_LINUX
+#include <unistd.h>
 #define M_msleep(x)	usleep((x)*1000)
 #define M_sleep(x)	sleep(x)
 #endif

@@ -1717,7 +1717,6 @@ static INLINE void	set_normal_info(normal_info_t* normal_info, M_sint8* str, M_s
 static INLINE M_sint32 process_normal_rule(mat_delim_t* match_delim, ne_cfg_t* cfg, normalize_engine_t* model, rule_t* rule)
 {
 	M_sint32	i = 0;
-	M_sint32	state = 0;
 	mat_delim_t	match_delim_normal;
 
 	M_dlist*		wc_stub;
@@ -2421,7 +2420,6 @@ loop:
 
 normalize_engine_t*		build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size)
 {
-	M_sint32			i = 0;
 	ne_arg_t			ne_arg;
 	pattern_t*			wc_pat;
 	normalize_engine_t* model;
@@ -2471,7 +2469,7 @@ normalize_engine_t*		build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size
 	*tmp_memory_size = sp_hwm(&ne_arg.tpool) > 0 ? sp_hwm(&ne_arg.tpool) : ne_arg.tpool.cur_ptr - ne_arg.tpool.pool;
 #ifdef _DEBUG_PRINT
 	printf("%d/%d memory of spool, %d/%d memory of tpool\n", *memory_size, sp_hwm(&ne_arg.spool),
-		ne_arg.tpool.cur_ptr - ne_arg.tpool.pool, sp_hwm(&ne_arg.tpool));
+		M_sint32(ne_arg.tpool.cur_ptr - ne_arg.tpool.pool), sp_hwm(&ne_arg.tpool));
 #endif
 	return model;
 

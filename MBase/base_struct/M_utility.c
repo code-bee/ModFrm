@@ -26,7 +26,6 @@ typedef union p
 INLINE	void M_snprintf(M_sint8* str, M_size_t size, const M_sint8* format, ...)
 {
 	va_list ap;
-	M_sint32 n;
 
 	if(size < 1)
 		return;
@@ -124,7 +123,7 @@ M_sint32	s_rand_remainder;
 M_sint32	s_rand_digits;
 INLINE	void	rand_max()
 {
-	M_uint64 randmax = ((M_uint64)RAND_MAX <= 0xffffffff) ? RAND_MAX + 1 : 0;
+	M_uint64 randmax = ((M_uint64)RAND_MAX <= 0xffffffffUL) ? RAND_MAX + 1 : 0;
 	s_rand_digits = -1;
 
 	while(s_rand_digits++ < 32 && !(randmax & 0x01))

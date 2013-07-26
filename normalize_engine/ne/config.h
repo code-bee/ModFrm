@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __M_CFG_OS_LINUX
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+
 /*
 	支持set的config文件
 
@@ -128,7 +134,6 @@ static __inline int long_reader(char *in_string,void *out_value)
 static __inline char* my_strtok(char* str, char* delim, char* buf)
 {
 	char* head = NULL;
-	char* tail = NULL;
 	char* tmphead;
 	char* tmpdelim;
 

@@ -9,7 +9,8 @@
 #include "MBase.h"
 
 #ifdef __M_CFG_OS_LINUX
-#include <syscall.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 #endif
 
 INLINE	M_tid_t	M_get_tid()
