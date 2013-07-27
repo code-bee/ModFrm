@@ -34,6 +34,8 @@
 
 #endif
 
+//#define _DEBUG_PRINT
+
 /*
 	整体流程
 	1. 读入配置
@@ -64,7 +66,9 @@ typedef struct st_cfg_common
 	M_sint8		escape_char;
 	M_sint8		nr_groups;
 	M_sint8		group_delim_reuse;
-	M_sint8		flow_mode;			
+	M_sint8		flow_mode;
+	M_sint32	engine_size;
+	M_sint32	handle_size;
 } cfg_common_t;
 
 typedef struct st_cfg_group
@@ -223,14 +227,11 @@ typedef struct st_normalize_engine
 
 /*
 	called after config file read over, usually in main thread
-	memory_size: in and out. [in]: how many memory will be allocated for normalize engine
-							 [out]: how many memory is acturally used
+	memory_size: out. 		 [out]: how many memory is acturally used
 	tmp_memory_size: out.	 [out]: how many temporary memory is acturally used
-
-	size of temporary memory is same with  memory_size
 */
 NE_API normalize_engine_t*	build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size);
-NE_API void				destroy_normalize_engine(normalize_engine_t* model);
+NE_API void					destroy_normalize_engine(normalize_engine_t* model);
 
 typedef struct st_range_result
 {
@@ -259,7 +260,7 @@ typedef struct st_match_handle
 	M_sint32	status;
 } match_handle_t;
 
-NE_API match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size);
+NE_API match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg);
 // 返回最大占用内存
 NE_API M_sint32			destroy_match_handle(match_handle_t* handle);
 NE_API void			set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_str_len);

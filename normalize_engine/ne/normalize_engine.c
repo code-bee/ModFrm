@@ -23,6 +23,8 @@ config_set_t g_common_config[] =
 	{"escape_char",				char_reader,		offset_of(cfg_common_t, escape_char)},
 	{"group_order",				string_reader,		offset_of(cfg_common_t, group_order)},
 	{"default_group",			string_reader,		offset_of(cfg_common_t, default_group)},
+	{"engine_size",				int_reader,			offset_of(cfg_common_t, engine_size)},
+	{"handle_size",				int_reader,			offset_of(cfg_common_t, handle_size)},
 	{"multi_seg_wildcard",		string_reader,		offset_of(cfg_common_t, wildcard) + FLAG_LEN*WT_MULTISEG},
 	{"multi_char_wildcard",		string_reader,		offset_of(cfg_common_t, wildcard) + FLAG_LEN*WT_MULTICHAR},
 	{"single_seg_wildcard",		string_reader,		offset_of(cfg_common_t, wildcard) + FLAG_LEN*WT_SINGLESEG},
@@ -64,6 +66,8 @@ static void set_default_config(ne_cfg_t* cfgs)
 	sprintf(cfgs->cfg_common_t_cfgs->wildcard[WT_SINGLESEG], "$$");
 	cfgs->cfg_common_t_cfgs->escape_char = '\\';
 	cfgs->cfg_common_t_cfgs->pattern_id_len = 1;
+	cfgs->cfg_common_t_cfgs->engine_size = 1024;
+	cfgs->cfg_common_t_cfgs->handle_size = 1024;
 }
 
 M_sint32 read_ne_config(M_sint8* filename, ne_cfg_t* cfgs)
@@ -2436,6 +2440,8 @@ normalize_engine_t*		build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size
 	pattern_t*			wc_pat;
 	normalize_engine_t* model;
 
+	*memory_size = cfg->cfg_common_t_cfgs->engine_size * 1024;
+
 	if( ne_arg_init(&ne_arg, *memory_size, cfg->cfg_group_t_nr_sets) < 0 )
 		return NULL;
 
@@ -2509,11 +2515,12 @@ void	destroy_normalize_engine(normalize_engine_t* model)
 #define NO_DUMMY		(-1)
 #define INVALID_DUMMY	0
 #define VALID_DUMMY		1
-match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size)
+match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg)
 {
 	M_sint8* memory;
 	M_sint32 i;
 	match_handle_t* match_handle;
+	M_sint32 memory_size = cfg->cfg_common_t_cfgs->handle_size * 1024;
 
 	if(sizeof(match_handle_t) > memory_size)
 		return NULL;

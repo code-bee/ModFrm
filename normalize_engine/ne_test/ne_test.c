@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 	pattern_t*	pat;
 	M_slist*	list_stub;
 	M_sint32	i;
-	M_sint32	memsize = 1024*1024, tmp_memory_size;
+	M_sint32	memsize, tmp_memory_size;
 	match_handle_t*	ac_arg;
 
 #ifdef __M_CFG_OS_LINUX
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
 	if(model = build_normalize_engine(&cfg, &memsize, &tmp_memory_size))
 	{
-		ac_arg = create_match_handle(model, &cfg, 1024*100);
+		ac_arg = create_match_handle(model, &cfg);
 		for(i = 0; i<1; i++)
 		{
 			set_match_handle(ac_arg, "xyz1", strlen("xyz1"));
