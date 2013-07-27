@@ -3,94 +3,96 @@
 
 #if (defined _WINDOWS) || (defined WIN32)
 #ifdef _DEBUG
-	#pragma comment(lib, "../debug/MBase.lib")
-	#pragma comment(lib, "../debug/pthread.lib")
+	#pragma comment(lib, "../../debug/MBase.lib")
+	#pragma comment(lib, "../../debug/pthread.lib")
+	#pragma comment(lib, "../../debug/normalize_engine.lib")
 #else
-	#pragma comment(lib, "../release/MBase.lib")
-	#pragma comment(lib, "../release/pthread.lib")
+	#pragma comment(lib, "../../release/MBase.lib")
+	#pragma comment(lib, "../../release/pthread.lib")
+	#pragma comment(lib, "../../release/normalize_engine.lib")
 #endif
 #endif
 
-#include "normalize_engine.h"
+#include "../ne/normalize_engine.h"
 
-#define MEM_LEAK
+//#define MEM_LEAK
 //ne_cfg_t	g_cfg;
 
-struct ac_test
-{
-	M_dlist list_stub;
-	M_sint32 offset;
-	M_sint32 len;
-};
-
-M_sint32	test_matcher(void *id, void *tree, M_sint32 offset, M_dlist* list_head, void *neg_list)
-{
-	struct ac_test* list_stub = malloc(sizeof(struct ac_test));
-	struct ac_test* current;
-	M_dlist* tmp_stub;
-
-	list_stub->offset = offset;
-	list_stub->len = (int)id;
-	dlist_append(list_head, &list_stub->list_stub);
-	current = list_stub;
-	//printf("add %d* at %d\n", list_stub->len, offset);
-
-	tmp_stub = list_stub->list_stub.prev;
-	while(tmp_stub != list_head)
-	{
-		list_stub = container_of(tmp_stub, struct ac_test, list_stub);
-		tmp_stub = tmp_stub->prev;
-
-		if(list_stub->offset >= offset)
-		{
-			//printf("remove %d* at %d\n", list_stub->len, list_stub->offset);
-			dlist_remove(list_head, &list_stub->list_stub);
-			free(list_stub);
-		}
-		else if(list_stub->offset + list_stub->len > offset)
-		{
-			//printf("remove current %d* at %d\n", current->len, current->offset);
-			dlist_remove(list_head, &current->list_stub);
-			free(current);
-			break;
-		}
-		else
-			break;
-	}
-
-	return 0;
-}
-
-void test_ac()
-{
-	char* str = "abcdAbCD1cde11xyz111de111111ef";
-	M_dlist	list_head;
-	M_dlist* tmp_stub;
-	struct ac_test* node;
-	M_sint32	state = 0;
-	ACSM_STRUCT2* ac = acsmNew2(NULL, NULL, NULL);
-	acsmAddPattern2(ac, "1", 1, 1, 0, 0, 0, 1, 0);
-	acsmAddPattern2(ac, "abcd", 4, 0, 0, 0, 0, 4, 0);
-	acsmAddPattern2(ac, "11", 2, 1, 0, 0, 0, 2, 0);
-	acsmAddPattern2(ac, "111", 3, 1, 0, 0, 0, 3, 0);	
-
-	dlist_init(&list_head);
-	acsmCompile2(ac, NULL, NULL);
-	Print_DFA(ac);
-	acsmSearch2(ac, str, strlen(str), test_matcher, &list_head, &state);
-
-	acsmFree2(ac);
-
-	tmp_stub = list_head.next;
-	while(tmp_stub != &list_head)
-	{
-		node = container_of(tmp_stub, struct ac_test, list_stub);
-		tmp_stub = tmp_stub->next;
-
-		printf("%d* at %d\n", node->len, node->offset);
-		free(node);
-	}
-}
+//struct ac_test
+//{
+//	M_dlist list_stub;
+//	M_sint32 offset;
+//	M_sint32 len;
+//};
+//
+//M_sint32	test_matcher(void *id, void *tree, M_sint32 offset, M_dlist* list_head, void *neg_list)
+//{
+//	struct ac_test* list_stub = malloc(sizeof(struct ac_test));
+//	struct ac_test* current;
+//	M_dlist* tmp_stub;
+//
+//	list_stub->offset = offset;
+//	list_stub->len = (int)id;
+//	dlist_append(list_head, &list_stub->list_stub);
+//	current = list_stub;
+//	//printf("add %d* at %d\n", list_stub->len, offset);
+//
+//	tmp_stub = list_stub->list_stub.prev;
+//	while(tmp_stub != list_head)
+//	{
+//		list_stub = container_of(tmp_stub, struct ac_test, list_stub);
+//		tmp_stub = tmp_stub->prev;
+//
+//		if(list_stub->offset >= offset)
+//		{
+//			//printf("remove %d* at %d\n", list_stub->len, list_stub->offset);
+//			dlist_remove(list_head, &list_stub->list_stub);
+//			free(list_stub);
+//		}
+//		else if(list_stub->offset + list_stub->len > offset)
+//		{
+//			//printf("remove current %d* at %d\n", current->len, current->offset);
+//			dlist_remove(list_head, &current->list_stub);
+//			free(current);
+//			break;
+//		}
+//		else
+//			break;
+//	}
+//
+//	return 0;
+//}
+//
+//void test_ac()
+//{
+//	char* str = "abcdAbCD1cde11xyz111de111111ef";
+//	M_dlist	list_head;
+//	M_dlist* tmp_stub;
+//	struct ac_test* node;
+//	M_sint32	state = 0;
+//	ACSM_STRUCT2* ac = acsmNew2(NULL, NULL, NULL);
+//	acsmAddPattern2(ac, "1", 1, 1, 0, 0, 0, 1, 0);
+//	acsmAddPattern2(ac, "abcd", 4, 0, 0, 0, 0, 4, 0);
+//	acsmAddPattern2(ac, "11", 2, 1, 0, 0, 0, 2, 0);
+//	acsmAddPattern2(ac, "111", 3, 1, 0, 0, 0, 3, 0);	
+//
+//	dlist_init(&list_head);
+//	acsmCompile2(ac, NULL, NULL);
+//	Print_DFA(ac);
+//	acsmSearch2(ac, str, strlen(str), test_matcher, &list_head, &state);
+//
+//	acsmFree2(ac);
+//
+//	tmp_stub = list_head.next;
+//	while(tmp_stub != &list_head)
+//	{
+//		node = container_of(tmp_stub, struct ac_test, list_stub);
+//		tmp_stub = tmp_stub->next;
+//
+//		printf("%d* at %d\n", node->len, node->offset);
+//		free(node);
+//	}
+//}
 
 void print_normal_result(match_handle_t* match_handle)
 {
@@ -132,9 +134,9 @@ int main(int argc, char* argv[])
 #ifdef __M_CFG_OS_LINUX
 	read_ne_config("normalize_engine.cfg", &cfg);
 #else
-	read_ne_config("..\\normalize_engine\\ne\\normalize_engine.cfg", &cfg);
+	read_ne_config("..\\..\\normalize_engine\\ne_test\\normalize_engine.cfg", &cfg);
 #endif
-	//read_ne_config("..\\normalize_engine\\ne\\a.txt", &cfg);
+	//read_ne_config("..\\..\\normalize_engine\\ne_test\\a.txt", &cfg);
 	print_cfg(&cfg);
 
 
@@ -196,8 +198,9 @@ int main(int argc, char* argv[])
 			print_normal_result(ac_arg);
 
 		}
-
-		destroy_match_handle(ac_arg);
+#ifdef _DEBUG_PRINT
+		printf("%d memory used by match_handle\n", destroy_match_handle(ac_arg));
+#endif
 		destroy_normalize_engine(model);
 		//printf("%d\n", memsize);
 		memsize = 1024*1024;

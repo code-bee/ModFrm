@@ -15,28 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="ne\acsmx2.c">
+    <ClCompile Include="ne_test.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ne\config.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ne\normalize_engine.c">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ne\acsmx2.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ne\config.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ne\normalize_engine.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

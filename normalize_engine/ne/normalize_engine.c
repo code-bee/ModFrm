@@ -1,7 +1,17 @@
-﻿
+﻿#include "normalize_engine_priv.h"
 #include "normalize_engine.h"
 #ifdef __M_CFG_OS_LINUX
 #include <ctype.h>
+#endif
+
+#if (defined _WINDOWS) || (defined WIN32)
+#ifdef _DEBUG
+	#pragma comment(lib, "../debug/MBase.lib")
+	#pragma comment(lib, "../debug/pthread.lib")
+#else
+	#pragma comment(lib, "../release/MBase.lib")
+	#pragma comment(lib, "../release/pthread.lib")
+#endif
 #endif
 
 config_set_t g_common_config[] = 
@@ -2537,9 +2547,11 @@ match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg, M_
 	return match_handle;
 }
 
-void			destroy_match_handle(match_handle_t* handle)
+M_sint32			destroy_match_handle(match_handle_t* handle)
 {
+	M_sint32 ret = sp_hwm(&handle->tpool);
 	free(handle);
+	return ret;
 }
 
 void		set_match_handle(match_handle_t* match_handle, M_sint8* src_str, M_sint32 src_str_len)

@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pthread", "opensrc\pthreads
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "normalize_engine", "normalize_engine\normalize_engine.vcxproj", "{7559CD1F-CD55-4CAC-B176-12122EED3804}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ne_test", "normalize_engine\ne_test\ne_test.vcxproj", "{D0BC6384-A6DD-43D7-962D-0DB759028604}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Debug|Win32.Build.0 = Debug|Win32
 		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Release|Win32.ActiveCfg = Release|Win32
 		{7559CD1F-CD55-4CAC-B176-12122EED3804}.Release|Win32.Build.0 = Release|Win32
+		{D0BC6384-A6DD-43D7-962D-0DB759028604}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D0BC6384-A6DD-43D7-962D-0DB759028604}.Debug|Win32.Build.0 = Debug|Win32
+		{D0BC6384-A6DD-43D7-962D-0DB759028604}.Release|Win32.ActiveCfg = Release|Win32
+		{D0BC6384-A6DD-43D7-962D-0DB759028604}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

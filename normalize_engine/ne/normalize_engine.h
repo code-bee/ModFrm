@@ -5,12 +5,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MBase.h"
+#include <MBase.h>
 
 #include "config.h"
 #include "acsmx2.h"
 
-#define _DEBUG_PRINT
+#ifdef _WINDOWS
+#define	__M_CFG_OS_WINDOWS
+#endif
+
+#ifdef WIN32
+#define	__M_CFG_OS_WINDOWS
+#endif
+
+#ifdef __M_CFG_OS_WINDOWS
+
+	#ifdef NORMALIZE_ENGINE_EXPORTS
+		#define NE_API __declspec(dllexport)
+	#else
+		#define NE_API __declspec(dllimport)
+	#endif
+
+	//#define __M_CFG_CMPL_MVC
+
+#else
+
+	#define NE_API
+
+#endif
 
 /*
 	整体流程
@@ -88,60 +110,11 @@ typedef struct st_ne_cfg
 	//user_config_set_t rule;
 } ne_cfg_t;
 
-M_sint32 read_ne_config(M_sint8* filename, ne_cfg_t* cfgs);
-void release_ne_config(ne_cfg_t* cfgs);
-void print_cfg(ne_cfg_t* cfgs);
+NE_API M_sint32 read_ne_config(M_sint8* filename, ne_cfg_t* cfgs);
+NE_API void release_ne_config(ne_cfg_t* cfgs);
+NE_API void print_cfg(ne_cfg_t* cfgs);
 
-/*
-	2. 配置解析，数据对象构造阶段
-		共有4个对象需要构造：rule对象，匹配模式（pattern）对象，通配符(wildcard)对象和AC状态机对象
-
-	rule对象：
-		目标：	管理匹配模式对象的相对位置关系，以检测待匹配串是否匹配成功
-				管理通配符对象的相对位置关系，以从待匹配串中提取通配内容
-				管理normal_rule，以生成归一化串
-
-	匹配模式对象：
-		目标：	快速从AC状态机的模式匹配结果中获取该结果属于哪个rule对象
-				快速从AC状态机的分隔符匹配结果中获取该分隔符的类型
-
-	通配符对象：
-		目标：	管理通配符在指定rule中的位置、长度、类型、编号信息，以从待匹配串中提取通配内容
-
-	AC状态机对象：
-		目标：	管理所有需要从待匹配串中提取的内容，包括分隔符，匹配模式，以实现一次扫描，提取信息的功能
-
-	以上这些对象都需要在构造阶段构造完毕。
-	为了构造这些对象，还需要实现一个方法：
-	根据分隔符位置、类型信息对输入串进行组、段划分。输入串可以是match_rule，也可以是待匹配串。
-
-	为各个对象起名字：
-	串约束（str_cons)：	匹配规则中按组(group)分割剩下的非通配部分，保存其相对位置信息和要求，存在于rule和串radix tree中
-						str_cons在rule中是按照出现顺序组织的
-	分隔符约束（delim_cons）：	保存分隔符的类型信息，存在于分隔符链表（delim_list）和串radix中。其中delim_list中的delim_cons
-								是按照group顺序组织的。分隔符与串约束的串必不相同
-	
-	通配符约束（wc_cons）： 通配符约束记录通配符在匹配规则和归一化规则中的位置和编号信息。编号信息反映了提取规则
-							通配符类型是静态变量，只有四种类型
-
-	模式串（pattern）：	模式串只代表字符串，与约束无关。str_cons和delim_cons都指向pattern。
-	模式串的radix_tree：将pattern组织成radix tree，每个pattern都有约束链表。str_cons和delim_cons挂在同一个链表上。
-						由于分隔符与模式串不相同，所以事实上一个pattern的约束链表中要么全是delim_cons，要么全是str_cons
-
-	rule_t：包含匹配规则和归一化规则。都以链表的形式按照顺序存放
-*/
 typedef cfg_group_t	group_t;
-
-/*
-	分隔符可以完全相同，但不允许出现包含，或前后缀关系
-*/
-//typedef struct st_delim_info
-//{
-//	M_slist		delim_stub;		//used by normalize_engine_t->delim_set
-//	M_sint16*	delim_type;		//delim type array, each group has an entry corresponding to group id
-//								//DT_XXX, only DT_START/DT_END/DT_SEG is valid in pattern_t, 
-//								//DT_HAT/DT_DOLLAR does not exist in pattern_t
-//} delim_info_t;
 
 typedef struct st_pattern
 {
@@ -256,8 +229,8 @@ typedef struct st_normalize_engine
 
 	size of temporary memory is same with  memory_size
 */
-normalize_engine_t*	build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size);
-void				destroy_normalize_engine(normalize_engine_t* model);
+NE_API normalize_engine_t*	build_normalize_engine(ne_cfg_t* cfg, M_sint32* memory_size, M_sint32* tmp_memory_size);
+NE_API void				destroy_normalize_engine(normalize_engine_t* model);
 
 typedef struct st_range_result
 {
@@ -275,37 +248,28 @@ typedef struct st_match_handle
 
 	M_dlist		delim_head;		// 记录AC匹配时各分隔符的位置信息
 	M_sint32	nr_delims;
-	//mat_delim_t	match_delim;
-
 	M_sint8*	back_mem;		// 记录以上变量初始化完毕后tpool的位置，便于回退。也在初始化时设定
 	
-	// 这一组变量在每次查询时都需要调整，归一化结果在dst_str中返回，匹配的规则在matched_rule中返回，状态在status中返回
-	// 如果正常，status为0；如果不能匹配，status为-1；如果多个匹配，status为成功匹配的数目，且matched_rule和dst_str_len
-	// 都记录匹配成功的规则编号
-	//M_sint8*	src_str;
-	//M_sint32	src_str_len;
 	M_rm_handle*	handle;
 	M_dlist			rm_result;
 	delim_pos_t*	left_dummy[2];		//表示左边边界的dummy delim pos，下标决定是valid还是invalid
 	delim_pos_t*	right_dummy[2];		//表示右边边界的dummy delim pos，下标决定是valid还是invalid
-	//M_rm_result_node*	range_result;	//分别存储各个类型通配的对应范围，每个rule都有自己的一个数组
 	M_slist		result_head;
-	//M_sint8*	dst_str;
-	//M_sint32	dst_str_len;
 	M_sint32	nr_matched_rules;
 	M_sint32	status;
 } match_handle_t;
 
-match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size);
-void			destroy_match_handle(match_handle_t* handle);
-void			set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_str_len);
+NE_API match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg, M_sint32 memory_size);
+// 返回最大占用内存
+NE_API M_sint32			destroy_match_handle(match_handle_t* handle);
+NE_API void			set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_str_len);
 
 /*
 	返回match_handle->status
 */
-M_sint32	normalize_string(match_handle_t* match_handle);
-M_sint32	get_normalize_rule_count(match_handle_t* match_handle);
-M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, rule_t** rule, M_sint32* str_len);
+NE_API M_sint32	normalize_string(match_handle_t* match_handle);
+NE_API M_sint32	get_normalize_rule_count(match_handle_t* match_handle);
+NE_API M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, rule_t** rule, M_sint32* str_len);
 
 #endif //__NORMALIZE_ENGINE_H__
 
