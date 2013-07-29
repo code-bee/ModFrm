@@ -12,11 +12,17 @@
 
 #ifdef __M_CFG_POOL_LEAK
 static M_sint32 s_alloc_counts = 0;
+#endif
+
 INLINE M_sint32	pi_get_mem_cts()
 {
+#ifdef __M_CFG_POOL_LEAK
 	return s_alloc_counts;
-}
+#else
+	return -1;
 #endif
+}
+
 
 INLINE void	pi_init(M_poolinf* pi, M_sint32 max_nr_blocks)
 {

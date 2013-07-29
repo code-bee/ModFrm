@@ -42,10 +42,7 @@ MBASE_API INLINE void	pi_attach(M_poolinf* pi, void* pool, M_malloc_t fp_alloc, 
 MBASE_API INLINE void	pi_destroy(M_poolinf* pi);
 MBASE_API INLINE void*	pi_alloc(M_sint32 size, M_poolinf* pi);
 MBASE_API INLINE void	pi_free(void* mem, M_poolinf* pi);
-
-#ifdef __M_CFG_POOL_LEAK
 MBASE_API INLINE M_sint32	pi_get_mem_cts();
-#endif
 
 
 #ifdef __cplusplus

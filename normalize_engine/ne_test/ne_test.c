@@ -94,16 +94,15 @@
 //	}
 //}
 
-void print_normal_result(match_handle_t* match_handle)
+void print_normal_result(match_handle_t* match_handle, M_sint32 nr_match_rules)
 {
 #ifdef _DEBUG_PRINT
 	M_sint8*	normal_result;
 	M_sint32	normal_result_len;
 	rule_t*		matched_rule;
-	M_sint32	nr_match_rules;
 	M_sint32	i;
 
-	if( (nr_match_rules = get_normalize_rule_count(match_handle)) >= 1)
+	if( nr_match_rules >= 1)
 	{
 		for(i=0; i<nr_match_rules; ++i)
 		{
@@ -130,6 +129,8 @@ int main(int argc, char* argv[])
 	M_sint32	i;
 	M_sint32	memsize, tmp_memory_size;
 	match_handle_t*	ac_arg;
+	M_sint32	mode = MM_BESTMATCH;
+	M_sint32	nr_rules;
 
 #ifdef __M_CFG_OS_LINUX
 	read_ne_config("normalize_engine.cfg", &cfg);
@@ -146,56 +147,56 @@ int main(int argc, char* argv[])
 		for(i = 0; i<1; i++)
 		{
 			set_match_handle(ac_arg, "xyz1", strlen("xyz1"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "item.taobao.com/aa/item.htm?id=bb", strlen("item.taobao.com/aa/item.htm?id=bb"));		
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "item.taobao.com/aa/item.htm?y=aa&id=bb&z=cc", strlen("item.taobao.com/aa/item.htm?y=aa&id=bb&z=cc"));		
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "item.taobao.com?id=bb", strlen("item.taobao.com?id=bb"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "item.taobao.comx/aa/item.htm?y=aa&id=bb&z=cc", strlen("item.taobao.comx/aa/item.htm?y=aa&id=bb&z=cc"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "item.taobao.com?y=aa&id=bb&z=cc", strlen("item.taobao.com?y=aa&id=bb&z=cc"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "item.taobao.comx/item.htm?a=aa&y=aa&id=bb&z=cc", strlen("item.taobao.comx/item.htm?a=aa&y=aa&id=bb&z=cc"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "www.search.suning.com/emall/strd.do?di=1000&ci=100&ai=2", strlen("www.search.suning.com/emall/strd.do?di=1000&ci=100&ai=2"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&z=*2", strlen("**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&z=*2"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "*.taobao.com/lottery/adf/a/a/a/xyzxxx/1abc_x.htm?xxx=1&ids=1&sss=222&sz=2", strlen("*.taobao.com/lottery/adf/a/a/a/xyzxxx/1abc_x.htm?xxx=1&ids=1&sss=222&sz=2"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "xyz.suning.com/abc/item.htm?xyz=1", strlen("xyz.suning.com/abc/item.htm?xyz=1"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "xyz.taobao.com/abc/item.htm?id=1", strlen("xyz.taobao.com/abc/item.htm?id=1"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 			set_match_handle(ac_arg, "**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&m=3&n=4&f=5&z=*2", strlen("**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&m=3&n=4&f=5&z=*2"));
-			normalize_string(ac_arg);
-			print_normal_result(ac_arg);
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
 
 		}
 #ifdef _DEBUG_PRINT
@@ -207,8 +208,6 @@ int main(int argc, char* argv[])
 		
 	}
 
-	match_len = pi_get_mem_cts();
-	
 	release_ne_config(&cfg);
 	
 

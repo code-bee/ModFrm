@@ -1687,6 +1687,8 @@ static INLINE void	rule_init(rule_t* rule, M_sint8* match_rule, M_sint8* normal_
 	memset(rule, 0, sizeof(rule_t));
 	rule->match_rule = match_rule;
 	rule->normal_rule = normal_rule;
+	rule->match_rule_len = strlen(rule->match_rule);
+	rule->normal_rule_len = strlen(rule->normal_rule);
 	slist_init(&rule->nm_head);
 }
 
@@ -2217,7 +2219,7 @@ static INLINE M_sint32 create_radix_mata(normalize_engine_t* model, rule_t* rule
 	rm_wc_info_t*	rm_wc_info = rule->rm_wc_arr;
 	M_sint8*		buf;
 	M_sint32		i;
-	M_sint32		str_len = strlen(rule->match_rule);
+	M_sint32		str_len = rule->match_rule_len;
 	M_sint32		pos = 0;
 	M_sint32		start_pos = 0;
 	M_sint32		end_pos = 0;
@@ -2341,7 +2343,7 @@ static INLINE M_sint32	parse_rules(normalize_engine_t* model, ne_cfg_t* cfg, ne_
 	match_delim.ne_arg = ne_arg;
 	match_delim.escape_char = cfg->cfg_common_t_cfgs->escape_char;
 
-	if( !(model->rules = sp_alloc(sizeof(rule_t)*cfg->cfg_rule_t_nr_sets, &ne_arg->spool)) )
+	if( !(model->rules = (rule_t*)sp_alloc(sizeof(rule_t)*cfg->cfg_rule_t_nr_sets, &ne_arg->spool)) )
 		return -1;
 
 	rule = model->rules;
@@ -3635,7 +3637,7 @@ fail:
 	检查匹配的rule是否满足规则要求
 	返回0表示成功，-1表示失败
 */
-static INLINE M_sint32 check_result(check_arg_t* arg, match_handle_t* match_handle/*, M_dlist* ori_wc_result_head*/)
+static INLINE M_sint32 check_result(check_arg_t* arg, match_handle_t* match_handle, M_sint32 mode)
 {
 	M_dlist*	rule_stub = match_handle->rm_result.next;
 	M_slist*	wc_stub;
@@ -3645,6 +3647,7 @@ static INLINE M_sint32 check_result(check_arg_t* arg, match_handle_t* match_hand
 	range_result_t*		rr;
 	
 	M_sint32 min_wcs = -1;
+	M_sint32 max_match_rule_len = -1;
 	M_sint32 i;
 
 	while(rule_stub != &match_handle->rm_result)
@@ -3671,7 +3674,7 @@ static INLINE M_sint32 check_result(check_arg_t* arg, match_handle_t* match_hand
 		slist_insert(&match_handle->result_head, &rr->list_stub);
 		
 		//痛苦的检查，很多种情况。。。
-		i = 0;
+		i = 1;
 		wc_stub = match_rule->res_head.next;
 		rm_wc_info = arg->rule->rm_wc_arr;
 		while(wc_stub != &match_rule->res_head)
@@ -3685,33 +3688,49 @@ static INLINE M_sint32 check_result(check_arg_t* arg, match_handle_t* match_hand
 			{
 				slist_remove(&match_handle->result_head);
 				sp_free(rr->range_result[0], &match_handle->tpool);
-				i = 1;
+				i = 0;
 				break;
 			}
 			++rm_wc_info;
 		}
-		if(!i)
+		if(i)
 		{
-			if(min_wcs >= 0 && min_wcs > arg->rule->nr_ori_wc)
+			if(min_wcs == -1)
 			{
-				slist_remove(&match_handle->result_head);
-				sp_free(rr->range_result[0], &match_handle->tpool);
-			}
-			else
-			{
-				//min_wcs = arg->rule->nr_ori_wc;
+				min_wcs = arg->rule->nr_ori_wc;
+				max_match_rule_len = arg->rule->match_rule_len;
 				++match_handle->nr_matched_rules;
 			}
+			else if(mode == MM_BESTMATCH)
+			{
+				if(arg->rule->nr_ori_wc < min_wcs || (arg->rule->nr_ori_wc == min_wcs && 
+					arg->rule->match_rule_len > max_match_rule_len))
+				{
+					while(!slist_empty(&match_handle->result_head))
+						slist_remove(&match_handle->result_head);
+					slist_insert(&match_handle->result_head, &rr->list_stub);
+					min_wcs = arg->rule->nr_ori_wc;
+					max_match_rule_len = arg->rule->match_rule_len;
+					match_handle->nr_matched_rules = 1;
+				}
+				else if(arg->rule->nr_ori_wc == min_wcs && arg->rule->match_rule_len == max_match_rule_len)
+				{
+					++match_handle->nr_matched_rules;
+				}
+				else
+				{
+					slist_remove(&match_handle->result_head);
+					sp_free(rr->range_result[0], &match_handle->tpool);
+				}
+			}
+			else
+				++match_handle->nr_matched_rules;
 		}
 	}
 
 	return 0;
 }
 
-M_sint32	get_normalize_rule_count(match_handle_t* match_handle)
-{
-	return match_handle->nr_matched_rules;
-}
 M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, rule_t** rule, M_sint32* str_len)
 {
 	M_slist*	nm_stub;
@@ -3767,7 +3786,7 @@ static void* get_rule_string(rule_t* rule)
 /*
 	先过radix mata，获得候选rule，再split string，判断是否符合rule要求
 */
-M_sint32	normalize_string(match_handle_t* match_handle)
+M_sint32	normalize_string(match_handle_t* match_handle, M_sint32 mode)
 {
 	mat_delim_t	match_delim;
 	M_bst_stub* root;
@@ -3812,8 +3831,8 @@ M_sint32	normalize_string(match_handle_t* match_handle)
 	arg.root = root;
 	arg.delim_head = &match_delim.delim_head;
 	arg.leading_grp = match_delim.leading_grp;
-	if( check_result(&arg, match_handle) < 0 )
+	if( check_result(&arg, match_handle, mode) < 0 )
 		return -1;
 
-	return 0;
+	return match_handle->nr_matched_rules;
 }

@@ -34,7 +34,7 @@
 
 #endif
 
-//#define _DEBUG_PRINT
+#define _DEBUG_PRINT
 
 /*
 	整体流程
@@ -193,6 +193,8 @@ typedef struct st_rule
 	M_sint32		nr_ori_wc;		//number of wildcards in match_rule
 	M_sint32		nr_rm_wc;		//number of wildcards in rm_rule
 	M_sint32		leading_grp;	//group id of first group
+	M_sint32		match_rule_len;
+	M_sint32		normal_rule_len;
 	wc_info_t*		ori_wc_arr;		//array of ori wildcard, has nr_ori_wc entries
 	rm_wc_info_t*	rm_wc_arr;		//wc array, has nr_rm_wc entries, for looking nr_wc up in match_rules
 	M_slist			nm_head;		//info of normal rule
@@ -263,13 +265,17 @@ typedef struct st_match_handle
 NE_API match_handle_t*	create_match_handle(normalize_engine_t* model, ne_cfg_t* cfg);
 // 返回最大占用内存
 NE_API M_sint32			destroy_match_handle(match_handle_t* handle);
-NE_API void			set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_str_len);
+NE_API void				set_match_handle(match_handle_t* handle, M_sint8* src_str, M_sint32 src_str_len);
 
 /*
-	返回match_handle->status
+	返回成功匹配的规则数目，-1表示程序错误，不得继续执行；0表示匹配失败，可以继续执行
+	mode为匹配模式，取值为一下两种情况：
+	MM_ALL：返回所有匹配结果，不做过滤
+	MM_BESTMATCH：当有多个匹配发生时，优先返回通配符少的；当通配符数目一样时，优先返回匹配规则长的
 */
-NE_API M_sint32	normalize_string(match_handle_t* match_handle);
-NE_API M_sint32	get_normalize_rule_count(match_handle_t* match_handle);
+#define MM_ALL			0
+#define	MM_BESTMATCH	1
+NE_API M_sint32	normalize_string(match_handle_t* match_handle, M_sint32	match_mode);
 NE_API M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, rule_t** rule, M_sint32* str_len);
 
 #endif //__NORMALIZE_ENGINE_H__
