@@ -1125,10 +1125,11 @@ M_sint32	rm_match(M_rm_root* root, M_rm_handle* handle)
 	while(add_stub != &add_list)
 	{
 		state = container_of(add_stub, M_rm_state, tmp_stub);
+		add_stub = add_stub->next;
 		rm_insert_state(handle, state);
 		//dlist_append(&handle->match_head, &state->match_stub);
 		//state->tmp_stub.next = NULL;
-		add_stub = add_stub->next;
+		
 	}
 
 	return 0;

@@ -202,6 +202,7 @@ typedef struct st_str_dedup
 #define	WT_SINGLESEG	1
 #define	WT_MULTICHAR	2
 #define	WT_MULTISEG		3
+#define	NR_WTS			4
 
 // pattern type，只有在执行输入串匹配时会遇到类型组合的情况，在构建engine时都是单类型
 #define PT_STRING	0x1
@@ -827,6 +828,7 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 		for(i=0; i<nr_candi_grps; ++i)
 		{
 			delim_type = delim_pos->delim_pat->delim_type[candi_grps[i]];
+			is_end |= delim_type;
 
 			//判断是否是有效seg
 			if(delim_type & DT_SEG)
@@ -834,27 +836,34 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 
 			if(delim_type & DT_END)
 			{
-				is_end = 1;
+				++final_grps;
 				last_candi_pos = delim_pos;
 				last_candi_grp = candi_grps[i];
 			}
 		}
-
-		if(!is_end || is_seg)				// 1.a, 2
+		if(!is_end)							//该delim不属于任何候选组，拿掉
+		{
+			dlist_remove(&match_delim->delim_head, &delim_pos->list_stub);
+			continue;
+		}
+		if(!final_grps || is_seg)			// 1.a, 2
 			continue;
 
-		for(i=0; i<nr_candi_grps; ++i)		// 检查1.b.i
-		{
-			delim_type = last_candi_pos->delim_pat->delim_type[candi_grps[i]];
-			if(delim_type & DT_END)
-			{
-				last_candi_grp = candi_grps[i];
-				//break;
-				++final_grps;
-			}
-		}
+		//if(!is_end || is_seg)				// 1.a, 2
+		//	continue;
 
-		if(final_grps != 1)
+		//for(i=0; i<nr_candi_grps; ++i)		// 检查1.b.i
+		//{
+		//	delim_type = last_candi_pos->delim_pat->delim_type[candi_grps[i]];
+		//	if(delim_type & DT_END)
+		//	{
+		//		last_candi_grp = candi_grps[i];
+		//		//break;
+		//		++final_grps;
+		//	}
+		//}
+
+		if(final_grps != 1)					// 检查1.b.i
 			goto fail;
 
 		if(&head_pos->list_stub == match_delim->delim_head.next && head_pos->pos > 0)
@@ -2848,6 +2857,7 @@ static INLINE M_sint32 process_string_segorder(mat_delim_t* match_delim, ne_cfg_
 	
 	match_delim->ori_str = buf;
 	//match_delim->ori_str_len = dst_pos;
+	if(!dst_pos)	dst_pos = end_pos;
 	match_delim->ori_str[dst_pos] = 0;
 
 	return 0;
@@ -3072,6 +3082,18 @@ fail:
 }
 
 /*
+	检查是否同一group的不同seg delim。是返回1，不是返回0
+*/
+static INLINE M_sint32	is_same_seg_delim(pattern_t* pat1, pattern_t* pat2, M_sint32 grp)
+{
+	if(pat1 == pat2)
+		return 1;
+	if((pat1->delim_type[grp] & DT_SEG) && (pat2->delim_type[grp] & DT_SEG))
+		return 1;
+	return 0;
+}
+
+/*
 	将同组的内容分割成段
 	以输入串为主线进行，先处理两种情况：
 	1. deliminfo和wcinfo的组在输入串中不存在，检查是否仅为多段通配，否则匹配失败
@@ -3191,7 +3213,7 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 			{
 				if(arg->d_s < arg->d_e)
 				{
-					if(delim_info->pos > wc_info->pos || arg->l->delim_pat != delim_info->delim_pat)
+					if(delim_info->pos > wc_info->pos || !is_same_seg_delim(arg->l->delim_pat, delim_info->delim_pat, arg->l->grp_id))
 						goto fail;
 				}
 				else
@@ -3291,6 +3313,7 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 
 				wc_info = &rm_wc_info->wc_info[arg->wc_e - 1];
 				delim_info = &rm_wc_info->delim_info[arg->d_e - 1];
+				bound_delim_pos = container_of(arg->r->list_stub.prev, delim_pos_t, list_stub);
 
 				// 检查seg pos
 				if(wc_info->cmp_type == CT_EQUAL && prev_real_delim_pos->seg_pos != wc_info->seg_pos)
@@ -3303,7 +3326,7 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 				{
 					if(arg->d_s < arg->d_e)
 					{
-						if(delim_info->pos < wc_info->pos || arg->r->delim_pat != delim_info->delim_pat)
+						if(delim_info->pos < wc_info->pos || !is_same_seg_delim(arg->r->delim_pat, delim_info->delim_pat,bound_delim_pos->grp_id))
 							goto fail;
 					}
 					else
@@ -3321,7 +3344,6 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 					goto fail;
 
 				// 检查是否段通配
-				bound_delim_pos = container_of(arg->r->list_stub.prev, delim_pos_t, list_stub);
 				switch(wc_info->wc_type)
 				{
 				case WT_SINGLESEG:
@@ -3667,9 +3689,9 @@ static INLINE M_sint32 check_result(check_arg_t* arg, match_handle_t* match_hand
 		if( !(rr = (range_result_t*)sp_alloc(sizeof(range_result_t), &match_handle->tpool)) )
 			return -1;
 
-		if( !(rr->range_result[0] = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node)*arg->rule->nr_ori_wc*4, &match_handle->tpool)) )
+		if( !(rr->range_result[0] = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node)*(arg->rule->nr_ori_wc+1)*NR_WTS, &match_handle->tpool)) )
 			return -1;
-		for(i=1; i<4; ++i)
+		for(i=1; i<NR_WTS; ++i)
 			rr->range_result[i] = rr->range_result[i-1] + arg->rule->nr_ori_wc;
 		rr->matched_rule = arg->rule;
 
@@ -3754,7 +3776,7 @@ M_sint8*	get_normalize_string(match_handle_t* match_handle, M_sint32 rule_id, ru
 	rr = container_of(rr_stub, range_result_t, list_stub);
 	*rule = rr->matched_rule;
 
-	if( !(str = sp_alloc(strlen(rr->matched_rule->normal_rule) + strlen(rr->matched_rule->match_rule), &match_handle->tpool)) )
+	if( !(str = (M_sint8*)sp_alloc(rr->matched_rule->normal_rule_len + rr->matched_rule->match_rule_len, &match_handle->tpool)) )
 		return NULL;
 
 	nm_stub = rr->matched_rule->nm_head.next;

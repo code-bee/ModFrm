@@ -146,57 +146,107 @@ int main(int argc, char* argv[])
 		ac_arg = create_match_handle(model, &cfg);
 		for(i = 0; i<1; i++)
 		{
+			set_match_handle(ac_arg, "category.dangdang.com/all?category_path=01.22.07.11.00.00.html", strlen("category.dangdang.com/all?category_path=01.22.07.11.00.00.html"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			set_match_handle(ac_arg, "detail.tmall.com/item.htm?&;id=16332225399&spm=a1z10.3.w17-243284520.52.RQdIpC", strlen("detail.tmall.com/item.htm?&;id=16332225399&spm=a1z10.3.w17-243284520.52.RQdIpC"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			set_match_handle(ac_arg, "item.taobao.com/abc-def.html", strlen("item.taobao.com/abc-def.html"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			set_match_handle(ac_arg, "item.taobao.com/123/456/789/000/op.html", strlen("item.taobao.com/123/456/789/000/op.html"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
 			set_match_handle(ac_arg, "xyz1", strlen("xyz1"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "item.taobao.com/aa/item.htm?xid=bb", strlen("item.taobao.com/aa/item.htm?xid=bb"));		
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "item.taobao.com/aa/item.htm?y=aa&id=bb&z=cc", strlen("item.taobao.com/aa/item.htm?y=aa&id=bb&z=cc"));		
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "item.taobao.com?id=bb", strlen("item.taobao.com?id=bb"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "item.taobao.comx/aa/item.htm?y=aa&id=bb&z=cc", strlen("item.taobao.comx/aa/item.htm?y=aa&id=bb&z=cc"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "item.taobao.com?y=aa&id=bb&z=cc", strlen("item.taobao.com?y=aa&id=bb&z=cc"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "item.taobao.comx/item.htm?a=aa&y=aa&id=bb&z=cc", strlen("item.taobao.comx/item.htm?a=aa&y=aa&id=bb&z=cc"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "www.search.suning.com/emall/strd.do?di=1000&ci=100&ai=2", strlen("www.search.suning.com/emall/strd.do?di=1000&ci=100&ai=2"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&z=*2", strlen("**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&z=*2"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "*.taobao.com/lottery/adf/a/a/a/xyzxxx/1abc_x.htm?xxx=1&ids=1&sss=222&sz=2", strlen("*.taobao.com/lottery/adf/a/a/a/xyzxxx/1abc_x.htm?xxx=1&ids=1&sss=222&sz=2"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "xyz.suning.com/abc/item.htm?xyz=1", strlen("xyz.suning.com/abc/item.htm?xyz=1"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "xyz.taobao.com/abc/item.htm?id=1", strlen("xyz.taobao.com/abc/item.htm?id=1"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 			set_match_handle(ac_arg, "**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&m=3&n=4&f=5&z=*2", strlen("**xay.taobao.com/lottery/33/33/adf/ss/33/a/xyz3/1sssabc_dd.htm?xyz=3&sz=3&ids=1&m=3&n=4&f=5&z=*2"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
 
 		}
 #ifdef _DEBUG_PRINT
