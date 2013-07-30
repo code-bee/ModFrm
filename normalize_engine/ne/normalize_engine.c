@@ -2916,13 +2916,14 @@ static INLINE M_sint32 check_seg_part_of_rm_wc_from_right(rm_wc_info_t* rm_wc_in
 		{
 			if(wc_info->pos < delim_info->pos)
 			{
-				wc_s = j;
+				wc_s = j + 1;
 				break;
 			}
 			--wc_info;
 		}
 	}
 	
+	wc_info = &rm_wc_info->wc_info[i - 1];
 	arg->epos -= arg->r->delim_pat->str_len;
 	while(wc_s < arg->wc_e)
 	{
@@ -2937,7 +2938,7 @@ static INLINE M_sint32 check_seg_part_of_rm_wc_from_right(rm_wc_info_t* rm_wc_in
 			bak_wc_info = wc_info;
 			if( (i = wc_s) >= arg->wc_e)
 				goto fail;
-
+			wc_info = &rm_wc_info->wc_info[wc_s];
 			break;
 		}
 		else
@@ -3026,6 +3027,7 @@ static INLINE M_sint32 check_seg_part_of_rm_wc_from_left(rm_wc_info_t* rm_wc_inf
 			bak_wc_info = wc_info;
 			if( (i = wc_e) <= arg->wc_s)
 				goto fail;
+			wc_info = &rm_wc_info->wc_info[wc_e - 1];
 			break;
 		}
 		else

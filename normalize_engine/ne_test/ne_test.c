@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 	M_sint32	i;
 	M_sint32	memsize, tmp_memory_size;
 	match_handle_t*	ac_arg;
-	M_sint32	mode = MM_BESTMATCH;
+	M_sint32	mode = MM_ALL;
 	M_sint32	nr_rules;
 
 #ifdef __M_CFG_OS_LINUX
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
 
-			set_match_handle(ac_arg, "item.taobao.com/aa/item.htm?id=bb", strlen("item.taobao.com/aa/item.htm?id=bb"));		
+			set_match_handle(ac_arg, "item.taobao.com/aa/item.htm?xid=bb", strlen("item.taobao.com/aa/item.htm?xid=bb"));		
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
 
