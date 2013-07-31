@@ -1152,7 +1152,7 @@ M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_re
 		slist_init(&match_result->res_head);
 		dlist_insert(match_res, &match_result->match_stub);
 		match_result->nr_wcs = 0;
-		enter_pos = 0;
+		enter_pos = -1;
 
 		if( (state = container_of(list_stub, M_rm_state, match_stub)) )
 			match_result->rule = state->rm_stub->rule;
@@ -1164,7 +1164,7 @@ M_sint32	rm_parse_result(M_rm_root* root, M_rm_handle* handle, M_dlist* match_re
 				if( !(result_node = (M_rm_result_node*)sp_alloc(sizeof(M_rm_result_node), handle->spool)) )
 					return -1;
 				result_node->enter_pos = state->enter_pos;
-				result_node->leave_pos = enter_pos ? enter_pos : handle->input_len;
+				result_node->leave_pos = enter_pos == -1 ? handle->input_len : enter_pos;
 				slist_insert(&match_result->res_head, &result_node->res_stub);
 				++match_result->nr_wcs;
 			}

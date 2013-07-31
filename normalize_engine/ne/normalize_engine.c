@@ -398,14 +398,14 @@ static INLINE M_sint8*	get_delim(M_sint8* str, M_sint8 c, M_sint8* buf, M_sint32
 		{
 			assert(special_flag);
 			*special_flag = DT_HAT;
-			if(*(str+1) != c)
+			if(*(str+1) && *(str+1) != c)
 				printf("cfg file format error at %s\n", str);
 		}
 		else if(*str == '$')
 		{
 			assert(special_flag);
 			*special_flag = DT_DOLLAR;
-			if(*(str+1) != c)
+			if(*(str+1) && *(str+1) != c)
 				printf("cfg file format error at %s\n", str);
 		}
 		else
@@ -866,7 +866,8 @@ static INLINE M_sint32 split_string(mat_delim_t* match_delim, M_stackpool* spool
 		if(final_grps != 1)					// 检查1.b.i
 			goto fail;
 
-		if(&head_pos->list_stub == match_delim->delim_head.next && head_pos->pos > 0)
+		if(!(head_pos->delim_pat->delim_type[last_candi_grp] & DT_START))
+		//if(&head_pos->list_stub == match_delim->delim_head.next && head_pos->pos > 0)
 			refresh_delim_pos(head_pos, last_candi_pos, last_candi_grp, 1);
 		else
 			refresh_delim_pos(head_pos, last_candi_pos, last_candi_grp, 0);
@@ -2723,7 +2724,7 @@ static INLINE M_sint32 process_string_segorder(mat_delim_t* match_delim, ne_cfg_
 
 	if(!model->disorder_seg || dlist_empty(&match_delim->delim_head))
 		return 0;
-	if( !(buf = (M_sint8*)sp_alloc(match_delim->ori_str_len, tpool)) )
+	if( !(buf = (M_sint8*)sp_alloc(match_delim->ori_str_len + 1, tpool)) )
 		return -1;
 	if( !(delim_pos_arr = (string_seg_t*)sp_alloc(sizeof(string_seg_t)*(match_delim->nr_delim+1), tpool)) )
 		return -1;
@@ -3155,8 +3156,17 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 				++delim_info;
 			}
 			if(j == arg->wc_s)
-				goto fail;
-			return 0;
+			{
+				delim_info = &rm_wc_info->delim_info[arg->d_s];
+				for(i=arg->d_s; i<arg->d_e; ++i)
+				{
+					if(!strncmp(delim_info->delim_pat->str, match_handle->handle->input_array + arg->spos, delim_info->delim_pat->str_len))
+						arg->spos += delim_info->delim_pat->str_len;
+					else
+						goto fail;
+				}
+			}
+			goto out;
 		}
 	}
 	else
@@ -3165,10 +3175,12 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 		delim_info = &rm_wc_info->delim_info[arg->d_s];
 
 		// 规则串中可能包含多个组，其组号都小于输入串中的组号
+		i = 0; //这里i记录上一个通配是否是多段通配
 		while(arg->wc_s < arg->wc_e)
 		{
 			if(wc_info->grp < arg->l->grp_id)
 			{
+				i = wc_info->wc_type == WT_MULTISEG ? 1 : 0;
 				if(wc_info->wc_type == WT_SINGLECHAR || wc_info->wc_type == WT_SINGLESEG)
 					goto fail;
 				if(wc_info->wc_type == WT_MULTICHAR && arg->wc_s)
@@ -3181,7 +3193,7 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 			else
 				break;
 		}
-		if(arg->wc_s == arg->wc_e)
+		if(arg->wc_s == arg->wc_e)	
 			goto fail;
 
 		while(arg->d_s < arg->d_e)
