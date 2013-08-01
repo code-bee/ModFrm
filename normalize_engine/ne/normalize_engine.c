@@ -3585,7 +3585,10 @@ static INLINE M_sint32 check_rm_wc(check_arg_t* arg, M_rm_result_node* match_wc,
 			if(delim_pos->pos < match_wc->enter_pos)
 			{
 				right_stub = NULL;
-				right_type = INVALID_DUMMY;
+				if(delim_pos->list_stub.next == arg->delim_head)
+					right_type = VALID_DUMMY;
+				else
+					right_type = INVALID_DUMMY;
 			}
 			else if(delim_pos->pos + delim_pos->delim_pat->str_len < match_wc->leave_pos)
 				right_type = INVALID_DUMMY;

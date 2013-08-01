@@ -143,6 +143,18 @@ int main(int argc, char* argv[])
 		ac_arg = create_match_handle(model, &cfg);
 		for(i = 0; i<1; i++)
 		{
+			set_match_handle(ac_arg, "http://www.amazon.cn/aaaa/gp/product/B007KZ5A12", strlen("http://www.amazon.cn/aaaa/gp/product/B007KZ5A12"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			set_match_handle(ac_arg, "http://www.amazon.cn/gp/product/B00DOQNG5S/478-0907204-9170135", strlen("http://www.amazon.cn/gp/product/B00DOQNG5S/478-0907204-9170135"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
 			set_match_handle(ac_arg, "http://1xyz2.com/3abc4/5efg?abcde", strlen("http://1xyz2.com/3abc4/5efg?abcde"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
