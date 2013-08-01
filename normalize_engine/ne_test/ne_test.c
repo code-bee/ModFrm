@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
 			else
 				printf("\n");
 
-			/*set_match_handle(ac_arg, "http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html", strlen("http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html"));
+			set_match_handle(ac_arg, "http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html", strlen("http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
 			else
@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
 			else
-				printf("\n");*/
+				printf("\n");
 
 		}
 #ifdef _DEBUG_PRINT

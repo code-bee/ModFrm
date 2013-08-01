@@ -3210,10 +3210,8 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 		}
 
 		// 匹配左侧的，输入串seg pos大于规则串中seg pos的wc info
-		if(arg->l->delim_pat->str)
+		if(arg->l->delim_pat->str && arg->d_s < arg->d_e)
 		{
-			if(arg->l->delim_pat != delim_info->delim_pat)
-				goto fail;
 			if(wc_info->pos < delim_info->pos)
 			{
 				if(arg->wc_s+1 <arg->wc_e && (wc_info+1)->pos < delim_info->pos)
@@ -3339,11 +3337,9 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 			}
 
 			// 匹配右侧的，输入串seg pos小于规则串中seg pos的wc info
-			if(arg->r->delim_pat->str)
+			if(arg->r->delim_pat->str && arg->d_s < arg->d_e)
 			{
-				if(arg->r->delim_pat != delim_info->delim_pat)
-					goto fail;
-				if(wc_info->pos > delim_info->pos)
+				if(wc_info->pos > delim_info->pos && wc_info->wc_type != WT_MULTISEG)
 				{
 					if(arg->wc_s+1 <arg->wc_e && (wc_info-1)->pos > delim_info->pos)
 						goto fail;
