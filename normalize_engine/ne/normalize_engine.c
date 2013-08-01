@@ -131,10 +131,12 @@ void print_rule_cfg(user_config_set_t* cfg)
 
 void print_cfg(ne_cfg_t*	cfgs)
 {
+#ifdef _DEBUG_PRINT
 	//printf("%s\n", cfgs->cfg_common_t_cfgs[0].default_group);
 	print_common_cfg(/*(user_config_set_t*)*/(&cfgs->cfg_common_t_cfgs));
 	print_group_cfg(/*(user_config_set_t*)*/(&cfgs->cfg_group_t_cfgs));
 	print_rule_cfg(/*(user_config_set_t*)*/(&cfgs->cfg_rule_t_cfgs));
+#endif
 }
 
 /*
@@ -1297,20 +1299,23 @@ static INLINE M_sint32	rearrange_delim_pos(mat_delim_t* match_delim, M_dlist* de
 
 		has_delim = 1;
 
-		while(wc_stub != &match_delim->wc_head)
+		if(wc_stub)
 		{
-			wc_pos = container_of(wc_stub, delim_pos_t, list_stub);
-
-			if(wc_pos->seg_pos == delim_pos->seg_pos && wc_pos->grp_id == delim_pos->grp_id)
+			while(wc_stub != &match_delim->wc_head)
 			{
-				wc_stub = wc_stub->next;
+				wc_pos = container_of(wc_stub, delim_pos_t, list_stub);
 
-				dlist_remove(&match_delim->wc_head, &wc_pos->list_stub);
-				wc_pos->pos -= delim_pos->pos;
-				dlist_append((M_dlist*)&delim_pos->rbt_stub, &wc_pos->list_stub);
+				if(wc_pos->seg_pos == delim_pos->seg_pos && wc_pos->grp_id == delim_pos->grp_id)
+				{
+					wc_stub = wc_stub->next;
+
+					dlist_remove(&match_delim->wc_head, &wc_pos->list_stub);
+					wc_pos->pos -= delim_pos->pos;
+					dlist_append((M_dlist*)&delim_pos->rbt_stub, &wc_pos->list_stub);
+				}
+				else
+					break;
 			}
-			else
-				break;
 		}
 	}
 
@@ -1326,7 +1331,7 @@ static INLINE M_sint32	rearrange_delim_pos(mat_delim_t* match_delim, M_dlist* de
 	}
 
 	// 还有通配没有处理完
-	if(wc_stub != &match_delim->wc_head)
+	if(wc_stub && wc_stub != &match_delim->wc_head)
 	{
 		wc_pos = container_of(wc_stub, delim_pos_t, list_stub);
 		wc_head = (M_dlist*)&delim_pos->rbt_stub;
@@ -1526,7 +1531,7 @@ static INLINE M_sint32 process_rule_segorder(mat_delim_t* match_delim, ne_cfg_t*
 			nr_pos = 0;
 			is_start = 0;
 			bak_delim_stub = delim_stub->prev;
-			bak_wc_stub = wc_stub->prev;
+			bak_wc_stub = wc_stub ? wc_stub->prev : match_delim->wc_head.prev;
 			
 			if( (next_grp = rearrange_delim_pos(match_delim, &delim_head, delim_stub, wc_stub, i, root, &end_pos)) < 0)
 				return -1;
