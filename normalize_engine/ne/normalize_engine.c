@@ -2982,6 +2982,7 @@ static INLINE M_sint32 check_seg_part_of_rm_wc_from_right(rm_wc_info_t* rm_wc_in
 		++wc_info;
 	}
 
+	wc_info = &rm_wc_info->wc_info[arg->wc_e - 1];
 	arg->wc_e = wc_s;
 	arg->epos = bound_delim_pos->pos + bound_delim_pos->delim_pat->str_len;
 	if(arg->d_s != arg->d_e && delim_info->pos > wc_info->pos)
@@ -3071,6 +3072,7 @@ static INLINE M_sint32 check_seg_part_of_rm_wc_from_left(rm_wc_info_t* rm_wc_inf
 		--wc_info;
 	}
 
+	wc_info = &rm_wc_info->wc_info[arg->wc_s];
 	arg->wc_s = wc_e;
 	arg->spos = bound_delim_pos->pos;
 	if(arg->d_s != arg->d_e && delim_info->pos < wc_info->pos)
@@ -3207,6 +3209,24 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 				break;
 		}
 
+		// 匹配左侧的，输入串seg pos大于规则串中seg pos的wc info
+		if(arg->l->delim_pat->str)
+		{
+			if(arg->l->delim_pat != delim_info->delim_pat)
+				goto fail;
+			if(wc_info->pos < delim_info->pos)
+			{
+				if(arg->wc_s+1 <arg->wc_e && (wc_info+1)->pos < delim_info->pos)
+					goto fail;
+				if(wc_info->wc_type != WT_MULTICHAR)
+					goto fail;
+				if(create_and_insert_wc_result_node(wc_info, arg->spos, arg->spos, match_handle) < 0)
+					return -1;
+				++wc_info;
+				++arg->wc_s;
+			}
+		}
+
 		while(list_stub != &arg->r->list_stub)
 		{
 			arg->l = container_of(list_stub, delim_pos_t, list_stub);
@@ -3317,6 +3337,25 @@ static INLINE M_sint32 check_grp_part_of_rm_wc(rm_wc_info_t* rm_wc_info, check_a
 				else
 					break;
 			}
+
+			// 匹配右侧的，输入串seg pos小于规则串中seg pos的wc info
+			if(arg->r->delim_pat->str)
+			{
+				if(arg->r->delim_pat != delim_info->delim_pat)
+					goto fail;
+				if(wc_info->pos > delim_info->pos)
+				{
+					if(arg->wc_s+1 <arg->wc_e && (wc_info-1)->pos > delim_info->pos)
+						goto fail;
+					if(wc_info->wc_type != WT_MULTICHAR)
+						goto fail;
+					if(create_and_insert_wc_result_node(wc_info, arg->spos, arg->spos, match_handle) < 0)
+						return -1;
+					--wc_info;
+					--arg->wc_e;
+				}
+			}
+
 			while(list_stub != &arg->l->list_stub)
 			{
 				arg->r = container_of(list_stub, delim_pos_t, list_stub);

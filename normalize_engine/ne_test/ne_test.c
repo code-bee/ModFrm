@@ -123,9 +123,6 @@ int main(int argc, char* argv[])
 	M_sint8*	key = "/";
 	M_sint32	key_len = 0;
 	M_sint32	match_len;
-	M_rt_stub*	rt_stub;
-	pattern_t*	pat;
-	M_slist*	list_stub;
 	M_sint32	i;
 	M_sint32	memsize, tmp_memory_size;
 	match_handle_t*	ac_arg;
@@ -146,7 +143,25 @@ int main(int argc, char* argv[])
 		ac_arg = create_match_handle(model, &cfg);
 		for(i = 0; i<1; i++)
 		{
-			set_match_handle(ac_arg, "http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html", strlen("http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html"));
+			set_match_handle(ac_arg, "item.taobao.com/abc3/111/4123/456/def2/11/1cde/op.html", strlen("item.taobao.com/abc3/111/4123/456/def2/11/1cde/op.html"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			set_match_handle(ac_arg, "item.taobao.com/abc/111/123/456/def/11/cde/op.html", strlen("item.taobao.com/abc/111/123/456/def/11/cde/op.html"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			set_match_handle(ac_arg, "item.taobao.com/abc1/2123/456/def/11/cde/op.html", strlen("item.taobao.com/abc1/2123/456/def/11/cde/op.html"));
+			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
+				print_normal_result(ac_arg, nr_rules);
+			else
+				printf("\n");
+
+			/*set_match_handle(ac_arg, "http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html", strlen("http://category.dangdang.com/all?category_path=01.22.07.11.00.00.html"));
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
 			else
@@ -252,7 +267,7 @@ int main(int argc, char* argv[])
 			if( (nr_rules = normalize_string(ac_arg, mode)) > 0)
 				print_normal_result(ac_arg, nr_rules);
 			else
-				printf("\n");
+				printf("\n");*/
 
 		}
 #ifdef _DEBUG_PRINT
