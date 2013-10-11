@@ -164,6 +164,16 @@ typedef struct {
 
 }ACSM_STRUCT2;
 
+void _printf(const char* fmt, ...);
+
+#define _DEBUG_PRINT
+
+#ifdef _DEBUG_PRINT
+#define PRINTF	printf
+#else
+#define PRINTF	_printf
+#endif
+
 /*
 *   Prototypes
 */

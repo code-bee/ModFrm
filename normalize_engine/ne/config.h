@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <MBase.h>
 
 #ifdef __M_CFG_OS_LINUX
 #include <sys/socket.h>
@@ -22,7 +23,7 @@
 #ifndef offset_of
 #define offset_of(type,member) (size_t)&(((type*)(0))->member)
 #endif
-typedef int (*config_reader_t)(char *in_string,void *out_value);
+typedef int (*config_reader_t)(char *in_string,void *out_value, M_stackpool* pool);
 typedef void (*config_setter_t)(int value, void* write_address);
 
 #define offset_of_cfg(cfg_type, set_type) (size_t)&(((cfg_type*)(0))->set_type##_cfgs)
@@ -73,7 +74,7 @@ typedef struct st_user_config_set
 	int		nr_sets;
 } user_config_set_t;
 
-int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg, void (*default_cfg)(void* cfgs));
+int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg, void (*default_cfg)(void* cfgs, M_stackpool* pool), M_stackpool* pool);
 void	release_config(config_t* config_array, int nr_config_array, void* cfg);
 
 static __inline void int_acc_setter(int dummy, void* write_address)
@@ -81,13 +82,18 @@ static __inline void int_acc_setter(int dummy, void* write_address)
 	(*(int*)write_address)++;
 }
 
-static __inline int string_reader(char *in_string,void *out_value) 
-{ 
-	strcpy((char*)out_value,in_string);
+static __inline int string_reader(char *in_string,void *out_value, M_stackpool* pool) 
+{
+	int str_len = strlen(in_string);
+	char* str;
+	if( !(str = (char*)sp_alloc(str_len + 1, pool)) )
+		return -1;
+	strcpy(str,in_string);
+	*((char**)out_value) = str;
 	return 0;
 }
 
-static __inline int ip_reader(char *in_string,void *out_value)
+static __inline int ip_reader(char *in_string,void *out_value, M_stackpool* pool)
 {
 #ifndef WINDOWS
 	unsigned int prefix = inet_addr(in_string);
@@ -96,7 +102,7 @@ static __inline int ip_reader(char *in_string,void *out_value)
 	return 0;
 }
 
-static __inline int port_reader(char* in_string, void* out_value)
+static __inline int port_reader(char* in_string, void* out_value, M_stackpool* pool)
 {
 #ifndef WINDOWS
 	*(short *)out_value = htons(atoi(in_string));
@@ -104,25 +110,25 @@ static __inline int port_reader(char* in_string, void* out_value)
 	return 0;
 }
 
-static __inline int int8_reader(char *in_string,void *out_value)
+static __inline int int8_reader(char *in_string,void *out_value, M_stackpool* pool)
 {
 	*(char *)out_value= atoi(in_string);
 	return 0;
 }
 
-static __inline int char_reader(char *in_string,void *out_value)
+static __inline int char_reader(char *in_string,void *out_value, M_stackpool* pool)
 {
 	*(char *)out_value= *in_string;
 	return 0;
 }
 
-static __inline int int_reader(char *in_string,void *out_value)
+static __inline int int_reader(char *in_string,void *out_value, M_stackpool* pool)
 {
 	*(int *)out_value= atoi(in_string);
 	return 0;
 }
 
-static __inline int long_reader(char *in_string,void *out_value)
+static __inline int long_reader(char *in_string,void *out_value, M_stackpool* pool)
 {
 	*(long *)out_value= atol(in_string);
 	return 0;

@@ -169,6 +169,9 @@ static INLINE	void	M_free(void* mem, void* pool)
 	free(mem);
 }
 
+#define	GROUND_4(x)		((x) - ((x) & 0x3))
+#define CEILING_4(x)	GROUND_4((x)+3)
+
 #ifdef __cplusplus
 }
 #endif

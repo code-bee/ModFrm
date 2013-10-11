@@ -97,6 +97,7 @@
     <ClInclude Include="ne\acsmx2.h" />
     <ClInclude Include="ne\config.h" />
     <ClInclude Include="ne\normalize_engine.h" />
+    <ClInclude Include="ne\normalize_engine_priv.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

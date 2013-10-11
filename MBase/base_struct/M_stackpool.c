@@ -46,8 +46,11 @@ INLINE void	sp_destroy(M_stackpool* sp)
 
 INLINE void* sp_alloc(M_sint32 size, M_stackpool* sp)
 {
-#ifdef __M_CFG_POOL_LEAK
 	M_sint8* tmp = sp->cur_ptr;
+	size = CEILING_4(size);
+
+#ifdef __M_CFG_POOL_LEAK
+	
 	if(sp->cur_ptr + size + sizeof(M_sint32) <= sp->pool + sp->pool_size)
 	{
 		sp->cur_ptr += size + sizeof(M_sint32);
@@ -63,7 +66,6 @@ INLINE void* sp_alloc(M_sint32 size, M_stackpool* sp)
 	else
 		return NULL;
 #else
-	M_sint8* tmp = sp->cur_ptr;
 	if(sp->cur_ptr + size <= sp->pool + sp->pool_size)
 	{
 		sp->cur_ptr += size;

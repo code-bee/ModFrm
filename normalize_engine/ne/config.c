@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #endif
 #include "config.h"
+#include "acsmx2.h"
 
 #define LINE_SIZE 1024
 
@@ -23,7 +24,7 @@
 
 	由于需要分配空间，所以必须有release_config方法
 */
-int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg, void (*default_cfg)(void* cfgs))
+int read_config(char *cfg_file, config_t* config_array, int nr_config_array, void* cfg, void (*default_cfg)(void* cfgs, M_stackpool* pool), M_stackpool* pool)
 {
 	FILE *fp = NULL;
 	char buf[LINE_SIZE]; //缓冲区数组
@@ -40,7 +41,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 
 	if( !(fp = fopen(cfg_file,"r")) )
 	{
-		printf("open file %s fail, %s\n", cfg_file, strerror(errno));
+		PRINTF("open file %s fail, %s\n", cfg_file, strerror(errno));
 		return -1;
 	}
 
@@ -60,7 +61,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			pitem = ++tmp;
 			if( !(tmp = strchr(tmp, ']')) )
 			{
-				printf("missing ] at line %d!\n", line_nr);
+				PRINTF("missing ] at line %d!\n", line_nr);
 				continue;
 			}
 			*tmp = 0;
@@ -75,15 +76,15 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 				}
 			}
 		}
-		continue;
+		//continue;
 	}
 
 	//分配内存
 	for(i=0; i<nr_config_array; ++i)
 	{
-		if( !(get_set_cfg(cfg, i)->cfgs = malloc(config_array[i].set_size * get_set_cfg(cfg, i)->nr_sets)) )
+		if( !(get_set_cfg(cfg, i)->cfgs = sp_alloc(config_array[i].set_size * get_set_cfg(cfg, i)->nr_sets, pool)) )
 		{
-			printf("memory out in malloc config struct %d! %s\n", i, strerror(errno));
+			PRINTF("memory out in malloc config struct %d! %s\n", i, strerror(errno));
 			while(--i > -1)
 				free(get_set_cfg(cfg, i)->cfgs);
 			return -1;
@@ -95,7 +96,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 
 	//设置默认配置
 	if(default_cfg)
-		default_cfg(cfg);
+		default_cfg(cfg, pool);
 
 	//逐个读入各组配置
 	line_nr = 0;
@@ -114,7 +115,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			pitem = ++tmp;
 			if( !(tmp = strchr(tmp, ']')) )
 			{
-				printf("missing ] at line %d!\n", line_nr);
+				PRINTF("missing ] at line %d!\n", line_nr);
 				continue;
 			}
 			*tmp = 0;
@@ -132,7 +133,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 				}
 			}
 			if(i == nr_config_array)
-				printf("unknown config set %s at line %d, %s may run error!\n", pitem, line_nr, __FUNCTION__);
+				PRINTF("unknown config set %s at line %d, %s may run error!\n", pitem, line_nr, __FUNCTION__);
 			
 			//下面的continue可以省略
 			//continue;
@@ -170,7 +171,7 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 #ifdef _DEBUG
 				if(!i)
 				{
-					printf("missing \"!\n");
+					PRINTF("missing \"!\n");
 					return -1;
 				}
 				else
@@ -194,8 +195,12 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 			{
 				if(strcmp(current_set->config_item_arr[i].item_name, pitem) == 0 )
 				{
-					current_set->config_item_arr[i].config_reader(pvalue, 
-						(char*)current_item_cfg + current_set->config_item_arr[i].offset);
+					if(	current_set->config_item_arr[i].config_reader(pvalue, 
+						(char*)current_item_cfg + current_set->config_item_arr[i].offset, pool) < 0)
+					{
+						PRINTF("error: memory exhausted during reading config\n");
+						return -1;
+					}
 					break;
 				}
 			}
@@ -207,18 +212,17 @@ int read_config(char *cfg_file, config_t* config_array, int nr_config_array, voi
 	return 0;
 }
 
-void	release_config(config_t* config_array, int nr_config_array, void* cfg)
+void	release_config(config_t* config_array, int nr_config_array, void* cfg, M_stackpool* pool)
 {
 	int i = 0;
 	user_config_set_t* set_cfg;
 
-	//分配内存
 	for(i=0; i<nr_config_array; ++i)
 	{
 		set_cfg = get_set_cfg(cfg, i);
 		if( set_cfg->cfgs )
 		{
-			free(set_cfg->cfgs);
+			sp_free(set_cfg->cfgs, pool);
 			set_cfg->cfgs = NULL;
 			set_cfg->nr_sets = 0;
 		}

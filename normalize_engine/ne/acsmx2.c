@@ -124,8 +124,8 @@
 **
 */
 /* for windows test only*/
-#define FatalError printf
-#define LogMessage printf
+#define FatalError PRINTF
+#define LogMessage PRINTF
 /* for windows test only*/
 
 #include <stdio.h>
@@ -143,6 +143,9 @@
 
 
 #include "acsmx2.h"
+
+void _printf(const char* fmt, ...)
+{}
 
 
 #define MEMASSERT(p,s) if(!p){FatalError("ACSM-No Memory: %s!\n",s);}
@@ -298,7 +301,7 @@ AC_MALLOC(
             case ACSM2_MEMORY_TYPE__NONE:
                 break;
             default:
-                printf("%s(%d) Invalid memory type\n", __FILE__, __LINE__);
+                PRINTF("%s(%d) Invalid memory type\n", __FILE__, __LINE__);
                 break;
         }
 
@@ -581,7 +584,7 @@ int List_PutNextState( ACSM_STRUCT2 * acsm, int state, int input, int next_state
   trans_node_t * p;
   trans_node_t * tnew;
 
- // printf("   List_PutNextState: state=%d, input='%c', next_state=%d\n",state,input,next_state);
+ // PRINTF("   List_PutNextState: state=%d, input='%c', next_state=%d\n",state,input,next_state);
 
 
   /* Check if the transition already exists, if so just update the next_state */
@@ -683,20 +686,20 @@ int List_PrintTransTable( ACSM_STRUCT2 * acsm )
 
   if( !acsm->acsmTransTable ) return 0;
 
-  printf("Print Transition Table- %d active states\n",acsm->acsmNumStates);
+  PRINTF("Print Transition Table- %d active states\n",acsm->acsmNumStates);
 
   for(i=0;i< acsm->acsmNumStates;i++)
   {
      t = acsm->acsmTransTable[i];
 
-     printf("state %3d: ",i);
+     PRINTF("state %3d: ",i);
 
      while( t )
      {
        if( isascii((int)t->key) && isprint((int)t->key) )
-         printf("%3c->%-5d\t",t->key,t->next_state);
+         PRINTF("%3c->%-5d\t",t->key,t->next_state);
        else
-         printf("%3d->%-5d\t",t->key,t->next_state);
+         PRINTF("%3d->%-5d\t",t->key,t->next_state);
 
        t = t->next;
      }
@@ -705,12 +708,12 @@ int List_PrintTransTable( ACSM_STRUCT2 * acsm )
 
      while( patrn )
      {
-         printf("%.*s ",patrn->n,patrn->patrn);
+         PRINTF("%.*s ",patrn->n,patrn->patrn);
 
          patrn = patrn->next;
      }
 
-     printf("\n");
+     PRINTF("\n");
    }
    return 0;
 }
@@ -830,15 +833,15 @@ AddPatternStates (ACSM_STRUCT2 * acsm, ACSM_PATTERN2 * p)
   pattern = p->patrn;
   state   = 0;
 
-  if(s_verbose)printf(" Begin AddPatternStates: acsmNumStates=%d\n",acsm->acsmNumStates);
-  if(s_verbose)printf("    adding '%.*s', nocase=%d\n", n,p->patrn, p->nocase );
+  if(s_verbose)PRINTF(" Begin AddPatternStates: acsmNumStates=%d\n",acsm->acsmNumStates);
+  if(s_verbose)PRINTF("    adding '%.*s', nocase=%d\n", n,p->patrn, p->nocase );
 
   /*
   *  Match up pattern with existing states
   */
   for (; n > 0; pattern++, n--)
   {
-      if(s_verbose)printf(" find char='%c'\n", *pattern );
+      if(s_verbose)PRINTF(" find char='%c'\n", *pattern );
 
       next = List_GetNextState(acsm,state,*pattern);
       if ((acstate_t)next == ACSM_FAIL_STATE2 || next == 0)
@@ -853,7 +856,7 @@ AddPatternStates (ACSM_STRUCT2 * acsm, ACSM_PATTERN2 * p)
   */
   for (; n > 0; pattern++, n--)
   {
-      if(s_verbose)printf(" add char='%c' state=%d NumStates=%d\n", *pattern, state, acsm->acsmNumStates );
+      if(s_verbose)PRINTF(" add char='%c' state=%d NumStates=%d\n", *pattern, state, acsm->acsmNumStates );
 
       acsm->acsmNumStates++;
       List_PutNextState(acsm,state,*pattern,acsm->acsmNumStates);
@@ -862,7 +865,7 @@ AddPatternStates (ACSM_STRUCT2 * acsm, ACSM_PATTERN2 * p)
 
   AddMatchListEntry (acsm, state, p );
 
-  if(s_verbose)printf(" End AddPatternStates: acsmNumStates=%d\n",acsm->acsmNumStates);
+  if(s_verbose)PRINTF(" End AddPatternStates: acsmNumStates=%d\n",acsm->acsmNumStates);
 }
 
 /*
@@ -947,7 +950,7 @@ Build_NFA (ACSM_STRUCT2 * acsm)
     /* Clean up the queue */
     queue_free (queue);
 
-    if( s_verbose)printf("End Build_NFA: NumStates=%d\n",acsm->acsmNumStates);
+    if( s_verbose)PRINTF("End Build_NFA: NumStates=%d\n",acsm->acsmNumStates);
 }
 
 /*
@@ -1002,7 +1005,7 @@ Convert_NFA_To_DFA (ACSM_STRUCT2 * acsm)
     /* Clean up the queue */
     queue_free (queue);
 
-    if(s_verbose)printf("End Convert_NFA_To_DFA: NumStates=%d\n",acsm->acsmNumStates);
+    if(s_verbose)PRINTF("End Convert_NFA_To_DFA: NumStates=%d\n",acsm->acsmNumStates);
 
 }
 
@@ -1293,7 +1296,7 @@ Conv_Full_DFA_To_SparseBands(ACSM_STRUCT2 * acsm)
        cnt += 2;
        cnt += band_end[i] - band_begin[i] + 1;
 
-       /*printf("state %d: sparseband %d,  first=%d, last=%d, cnt=%d\n",k,i,band_begin[i],band_end[i],band_end[i]-band_begin[i]+1); */
+       /*PRINTF("state %d: sparseband %d,  first=%d, last=%d, cnt=%d\n",k,i,band_begin[i],band_end[i],band_end[i]-band_begin[i]+1); */
     }
 
     p =  (acstate_t*)AC_MALLOC_DFA(sizeof(acstate_t)*(cnt), sizeof(acstate_t));
@@ -1334,7 +1337,7 @@ Print_DFA_MatchList( ACSM_STRUCT2 * acsm, int state )
           mlist;
           mlist = mlist->next)
      {
-        printf("%.*s ", mlist->n, mlist->patrn);
+        PRINTF("%.*s ", mlist->n, mlist->patrn);
      }
 }
 /*
@@ -1347,7 +1350,7 @@ Print_DFA(ACSM_STRUCT2 * acsm)
   acstate_t * p, state, n, fmt, index, nb;
   acstate_t ** NextState = acsm->acsmNextState;
 
-  printf("Print DFA - %d active states\n",acsm->acsmNumStates);
+  PRINTF("Print DFA - %d active states\n",acsm->acsmNumStates);
 
   for(k=0;k<acsm->acsmNumStates;k++)
   {
@@ -1357,7 +1360,7 @@ Print_DFA(ACSM_STRUCT2 * acsm)
 
     fmt = *p++;
 
-    printf("state %3d, fmt=%d: ",k,fmt);
+    PRINTF("state %3d, fmt=%d: ",k,fmt);
 
     if( fmt ==ACF_SPARSE )
     {
@@ -1365,9 +1368,9 @@ Print_DFA(ACSM_STRUCT2 * acsm)
        for( ; n>0; n--, p+=2 )
        {
          if( isascii((int)p[0]) && isprint((int)p[0]) )
-         printf("%3c->%-5d\t",p[0],p[1]);
+         PRINTF("%3c->%-5d\t",p[0],p[1]);
          else
-         printf("%3d->%-5d\t",p[0],p[1]);
+         PRINTF("%3d->%-5d\t",p[0],p[1]);
       }
     }
     else if( fmt ==ACF_BANDED )
@@ -1379,9 +1382,9 @@ Print_DFA(ACSM_STRUCT2 * acsm)
        for( ; n>0; n--, p++ )
        {
          if( isascii((int)p[0]) && isprint((int)p[0]) )
-         printf("%3c->%-5d\t",index++,p[0]);
+         PRINTF("%3c->%-5d\t",index++,p[0]);
          else
-         printf("%3d->%-5d\t",index++,p[0]);
+         PRINTF("%3d->%-5d\t",index++,p[0]);
       }
     }
     else if( fmt ==ACF_SPARSEBANDS )
@@ -1394,9 +1397,9 @@ Print_DFA(ACSM_STRUCT2 * acsm)
          for( ; n>0; n--, p++ )
          {
            if( isascii((int)index) && isprint((int)index) )
-           printf("%3c->%-5d\t",index++,p[0]);
+           PRINTF("%3c->%-5d\t",index++,p[0]);
            else
-           printf("%3d->%-5d\t",index++,p[0]);
+           PRINTF("%3d->%-5d\t",index++,p[0]);
          }
        }
     }
@@ -1410,16 +1413,16 @@ Print_DFA(ACSM_STRUCT2 * acsm)
          if( state != 0 && state != ACSM_FAIL_STATE2 )
          {
            if( isascii(i) && isprint(i) )
-             printf("%3c->%-5d\t",i,state);
+             PRINTF("%3c->%-5d\t",i,state);
            else
-             printf("%3d->%-5d\t",i,state);
+             PRINTF("%3d->%-5d\t",i,state);
          }
       }
     }
 
     Print_DFA_MatchList( acsm, k);
 
-    printf("\n");
+    PRINTF("\n");
   }
 }
 /*
@@ -1434,12 +1437,12 @@ Write_DFA(ACSM_STRUCT2 * acsm, char * f)
   acstate_t ** NextState = acsm->acsmNextState;
   FILE * fp;
 
-  printf("Dump DFA - %d active states\n",acsm->acsmNumStates);
+  PRINTF("Dump DFA - %d active states\n",acsm->acsmNumStates);
 
   fp = fopen(f,"wb");
   if(!fp)
    {
-     printf("WARNING: could not write dfa to file - %s.\n",f);
+     PRINTF("WARNING: could not write dfa to file - %s.\n",f);
      return;
    }
 
@@ -1868,7 +1871,7 @@ acsmCompile2(
 
     if (s_verbose)
     {
-        printf("ACSMX-Max Memory-TransTable Setup: %d bytes, %d states, "
+        PRINTF("ACSMX-Max Memory-TransTable Setup: %d bytes, %d states, "
                 "%d active states\n",
                 acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
     }
@@ -1881,10 +1884,10 @@ acsmCompile2(
 
     if (s_verbose)
     {
-        printf("ACSMX-Max Memory- MatchList Table Setup: %d bytes, %d states, "
+        PRINTF("ACSMX-Max Memory- MatchList Table Setup: %d bytes, %d states, "
                 "%d active states\n",
                 acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
-        printf("ACSMX-Max Memory-Table Setup: %d bytes, %d states, %d active "
+        PRINTF("ACSMX-Max Memory-Table Setup: %d bytes, %d states, %d active "
                 "states\n", acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
     }
 
@@ -1939,7 +1942,7 @@ acsmCompile2(
 
     if (s_verbose)
     {
-        printf("ACSMX-Max Trie List Memory : %d bytes, %d states, %d "
+        PRINTF("ACSMX-Max Trie List Memory : %d bytes, %d states, %d "
                 "active states\n",
                 acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
         List_PrintTransTable(acsm);
@@ -1949,14 +1952,14 @@ acsmCompile2(
     {
         /* Build the NFA */
         if (s_verbose)
-            printf("Build_NFA\n");
+            PRINTF("Build_NFA\n");
 
         Build_NFA(acsm);
 
         if (s_verbose)
         {
-            printf("NFA-Trans-Nodes: %d\n",acsm->acsmNumTrans);
-            printf("ACSMX-Max NFA List Memory  : %d bytes, %d states / %d "
+            PRINTF("NFA-Trans-Nodes: %d\n",acsm->acsmNumTrans);
+            PRINTF("ACSMX-Max NFA List Memory  : %d bytes, %d states / %d "
                     "active states\n",
                     acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
             List_PrintTransTable(acsm);
@@ -1967,14 +1970,14 @@ acsmCompile2(
     {
         /* Convert the NFA to a DFA */
         if (s_verbose)
-            printf("Convert_NFA_To_DFA\n");
+            PRINTF("Convert_NFA_To_DFA\n");
 
         Convert_NFA_To_DFA(acsm);
 
         if (s_verbose)
         {
-            printf("DFA-Trans-Nodes: %d\n",acsm->acsmNumTrans);
-            printf("ACSMX-Max NFA-DFA List Memory  : %d bytes, %d states / %d "
+            PRINTF("DFA-Trans-Nodes: %d\n",acsm->acsmNumTrans);
+            PRINTF("ACSMX-Max NFA-DFA List Memory  : %d bytes, %d states / %d "
                     "active states\n",
                     acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
             List_PrintTransTable( acsm );
@@ -1984,7 +1987,7 @@ acsmCompile2(
     /* Select Final Transition Table Storage Mode */
     if (s_verbose)
     {
-        printf("Converting Transition Lists -> Transition table, fmt=%d\n",
+        PRINTF("Converting Transition Lists -> Transition table, fmt=%d\n",
                 acsm->acsmFormat);
     }
 
@@ -1996,7 +1999,7 @@ acsmCompile2(
 
         if (s_verbose)
         {
-            printf ("ACSMX-Max Memory-Sparse: %d bytes, %d states, %d "
+            PRINTF ("ACSMX-Max Memory-Sparse: %d bytes, %d states, %d "
                     "active states\n",
                     acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
             Print_DFA(acsm);
@@ -2010,7 +2013,7 @@ acsmCompile2(
 
         if (s_verbose)
         {
-            printf("ACSMX-Max Memory-banded: %d bytes, %d states, %d "
+            PRINTF("ACSMX-Max Memory-banded: %d bytes, %d states, %d "
                     "active states\n",
                     acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
             Print_DFA(acsm);
@@ -2024,7 +2027,7 @@ acsmCompile2(
 
         if (s_verbose)
         {
-            printf("ACSMX-Max Memory-sparse-bands: %d bytes, %d states, %d "
+            PRINTF("ACSMX-Max Memory-sparse-bands: %d bytes, %d states, %d "
                     "active states\n",
                     acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
             Print_DFA(acsm);
@@ -2038,7 +2041,7 @@ acsmCompile2(
 
         if (s_verbose)
         {
-            printf("ACSMX-Max Memory-Full: %d bytes, %d states, %d active "
+            PRINTF("ACSMX-Max Memory-Full: %d bytes, %d states, %d active "
                     "states\n",
                     acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
             Print_DFA(acsm);
@@ -2058,7 +2061,7 @@ acsmCompile2(
 
     if (s_verbose)
     {
-        printf("ACSMX-Max Memory-Final: %d bytes, %d states, %d active "
+        PRINTF("ACSMX-Max Memory-Final: %d bytes, %d states, %d active "
                 "states\n",
                 acsm2_total_memory, acsm->acsmMaxStates, acsm->acsmNumStates);
     }
@@ -2909,24 +2912,24 @@ void acsmPrintInfo2( ACSM_STRUCT2 * p)
       "DFA"
     };
 
-    printf("+--[Pattern Matcher:Aho-Corasick]-----------------------------\n");
-    printf("| Alphabet Size    : %d Chars\n",p->acsmAlphabetSize);
+    PRINTF("+--[Pattern Matcher:Aho-Corasick]-----------------------------\n");
+    PRINTF("| Alphabet Size    : %d Chars\n",p->acsmAlphabetSize);
     if (p->compress_states)
-    printf("| Sizeof State     : %d\n", p->sizeofstate);
+    PRINTF("| Sizeof State     : %d\n", p->sizeofstate);
     else
-    printf("| Sizeof State     : %d bytes\n",(int)(sizeof(acstate_t)));
-    printf("| Storage Format   : %s \n",sf[ p->acsmFormat ]);
-    printf("| Sparse Row Nodes : %d Max\n",p->acsmSparseMaxRowNodes);
-    printf("| Sparse Band Zeros: %d Max\n",p->acsmSparseMaxZcnt);
-    printf("| Num States       : %d\n",p->acsmNumStates);
-    printf("| Num Transitions  : %d\n",p->acsmNumTrans);
-    printf("| State Density    : %.1f%%\n",100.0*(double)p->acsmNumTrans/(p->acsmNumStates*p->acsmAlphabetSize));
-    printf("| Finite Automaton : %s\n", fsa[p->acsmFSA]);
+    PRINTF("| Sizeof State     : %d bytes\n",(int)(sizeof(acstate_t)));
+    PRINTF("| Storage Format   : %s \n",sf[ p->acsmFormat ]);
+    PRINTF("| Sparse Row Nodes : %d Max\n",p->acsmSparseMaxRowNodes);
+    PRINTF("| Sparse Band Zeros: %d Max\n",p->acsmSparseMaxZcnt);
+    PRINTF("| Num States       : %d\n",p->acsmNumStates);
+    PRINTF("| Num Transitions  : %d\n",p->acsmNumTrans);
+    PRINTF("| State Density    : %.1f%%\n",100.0*(double)p->acsmNumTrans/(p->acsmNumStates*p->acsmAlphabetSize));
+    PRINTF("| Finite Automaton : %s\n", fsa[p->acsmFSA]);
     if( acsm2_total_memory < 1024*1024 )
-    printf("| Memory           : %.2fKbytes\n", (float)acsm2_total_memory/1024 );
+    PRINTF("| Memory           : %.2fKbytes\n", (float)acsm2_total_memory/1024 );
     else
-    printf("| Memory           : %.2fMbytes\n", (float)acsm2_total_memory/(1024*1024) );
-    printf("+-------------------------------------------------------------\n");
+    PRINTF("| Memory           : %.2fMbytes\n", (float)acsm2_total_memory/(1024*1024) );
+    PRINTF("+-------------------------------------------------------------\n");
 
     /* Print_DFA(acsm); */
 
@@ -3094,7 +3097,7 @@ main (int argc, char **argv)
   acsm = acsmNew2 ();
   if( !acsm )
   {
-     printf("acsm-no memory\n");
+     PRINTF("acsm-no memory\n");
      exit(0);
   }
 
@@ -3165,7 +3168,7 @@ main (int argc, char **argv)
       acsmAddPattern2 (acsm, p, strlen(p), nc, 0, 0,(void*)p, i - 2);
   }
 
-  if(s_verbose)printf("Patterns added\n");
+  if(s_verbose)PRINTF("Patterns added\n");
 
   Print_DFA (acsm);
 
@@ -3173,7 +3176,7 @@ main (int argc, char **argv)
 
   Write_DFA(acsm, "acsmx2-snort.dfa") ;
 
-  if(s_verbose) printf("Patterns compiled--written to file.\n");
+  if(s_verbose) PRINTF("Patterns compiled--written to file.\n");
 
   acsmPrintInfo2 ( acsm );
 
@@ -3181,7 +3184,7 @@ main (int argc, char **argv)
 
   acsmFree2 (acsm);
 
-  printf ("normal pgm end\n");
+  PRINTF ("normal pgm end\n");
 
   return (0);
 }
