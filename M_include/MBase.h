@@ -48,5 +48,6 @@
 #include "MBase_header/M_lqueue.h"
 #include "MBase_header/M_hash.h"
 #include "MBase_header/M_tls.h"
+#include "MBase_header/M_log.h"
 
 #include "MBase_header/M_error.h"

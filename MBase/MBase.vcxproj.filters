@@ -75,6 +75,9 @@
     <ClCompile Include="base_struct\M_radix_mata.c">
       <Filter>base_struct</Filter>
     </ClCompile>
+    <ClCompile Include="base_struct\M_log.c">
+      <Filter>base_struct</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MBase_priv.h">
@@ -138,6 +141,9 @@
       <Filter>base_struct</Filter>
     </ClInclude>
     <ClInclude Include="..\M_include\MBase_header\M_radix_mata.h">
+      <Filter>base_struct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\M_include\MBase_header\M_log.h">
       <Filter>base_struct</Filter>
     </ClInclude>
   </ItemGroup>

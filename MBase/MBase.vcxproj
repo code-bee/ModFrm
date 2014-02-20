@@ -92,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="base_struct\M_log.c" />
     <ClCompile Include="base_struct\M_poolinf.c" />
     <ClCompile Include="base_struct\M_radix_mata.c" />
     <ClCompile Include="base_struct\M_radix_tree.c" />
@@ -111,6 +112,7 @@
     <ClCompile Include="error\M_error.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\M_include\MBase_header\M_log.h" />
     <ClInclude Include="..\M_include\MBase_header\M_poolinf.h" />
     <ClInclude Include="..\M_include\MBase_header\M_radix_mata.h" />
     <ClInclude Include="..\M_include\MBase_header\M_radix_tree.h" />
